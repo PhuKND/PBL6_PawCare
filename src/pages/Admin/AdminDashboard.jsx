@@ -69,7 +69,6 @@ const AdminDashboard = () => {
     productGrowth: 0
   });
 
-  // Transform API data to chart format
   const transformRevenueData = (apiData) => {
     if (!apiData || typeof apiData !== 'object') return [];
     
@@ -110,14 +109,12 @@ const AdminDashboard = () => {
     }));
   };
 
-  // Color palette for categories
   const categoryColors = [
     '#8884d8', '#82ca9d', '#ffc658', '#ff7c7c', '#8dd1e1',
     '#ffb347', '#87ceeb', '#dda0dd', '#f0e68c', '#98d8c8',
     '#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#6c5ce7'
   ];
 
-  // Transform API category data to chart format
   const transformCategoryData = (apiData) => {
     if (!Array.isArray(apiData) || apiData.length === 0) return [];
     
@@ -128,37 +125,29 @@ const AdminDashboard = () => {
     }));
   };
 
-  // Calculate time ago in Vietnamese format
   const getTimeAgo = (dateString) => {
     if (!dateString) return 'N/A';
     
     try {
-      // Parse date and adjust for GMT+7 (Vietnam timezone)
       const date = new Date(dateString);
       const now = new Date();
       
-      // Calculate difference in milliseconds
       const diffMs = now.getTime() - date.getTime();
       
       if (diffMs < 0) return 'Vừa xong';
       
-      // Convert to seconds
       const diffSeconds = Math.floor(diffMs / 1000);
       if (diffSeconds < 60) return `${diffSeconds} giây trước`;
       
-      // Convert to minutes
       const diffMinutes = Math.floor(diffSeconds / 60);
       if (diffMinutes < 60) return `${diffMinutes} phút trước`;
       
-      // Convert to hours
       const diffHours = Math.floor(diffMinutes / 60);
       if (diffHours < 24) return `${diffHours} giờ trước`;
       
-      // Convert to days
       const diffDays = Math.floor(diffHours / 24);
       if (diffDays < 30) return `${diffDays} ngày trước`;
       
-      // Convert to months
       const diffMonths = Math.floor(diffDays / 30);
       if (diffMonths < 12) {
         const remainingDays = diffDays % 30;
@@ -168,7 +157,6 @@ const AdminDashboard = () => {
         return `${diffMonths} tháng trước`;
       }
       
-      // Convert to years
       const diffYears = Math.floor(diffMonths / 12);
       const remainingMonths = diffMonths % 12;
       const remainingDays = diffDays % 365;
@@ -190,7 +178,6 @@ const AdminDashboard = () => {
     }
   };
 
-  // Load top selling products
   useEffect(() => {
     const loadTopProducts = async () => {
       setLoadingTopProducts(true);
@@ -220,19 +207,15 @@ const AdminDashboard = () => {
     const loadDashboardData = async () => {
       setLoading(true);
       try {
-        // Load product count
         const productCountResponse = await http.get('/products/counts');
         const productCount = productCountResponse?.data?.data ?? productCountResponse?.data ?? 0;
 
-        // Load order count
         const orderCountResponse = await http.get('/order/count');
         const orderCount = orderCountResponse?.data?.data ?? orderCountResponse?.data ?? 0;
 
-        // Load user count
         const userCountResponse = await http.get('/users/count');
         const userCount = userCountResponse?.data?.data ?? userCountResponse?.data ?? 0;
 
-        // Load total revenue
         const revenueResponse = await http.get('/order/revenues');
         const revenue = revenueResponse?.data?.data ?? revenueResponse?.data ?? 0;
 
@@ -245,7 +228,6 @@ const AdminDashboard = () => {
         }));
       } catch (err) {
         console.error('Error loading dashboard data:', err);
-        // Giữ giá trị mặc định nếu có lỗi
       } finally {
         setLoading(false);
       }
@@ -254,7 +236,6 @@ const AdminDashboard = () => {
     loadDashboardData();
   }, []);
 
-  // Load revenue data by month
   useEffect(() => {
     const loadRevenueByMonth = async () => {
       setLoadingRevenueData(true);
@@ -274,7 +255,6 @@ const AdminDashboard = () => {
     loadRevenueByMonth();
   }, [selectedYear]);
 
-  // Load recent orders
   useEffect(() => {
     const loadRecentOrders = async () => {
       setLoadingRecentOrders(true);
@@ -288,7 +268,6 @@ const AdminDashboard = () => {
           orders = response.data.data;
         }
 
-        // Sort by createdAt descending and take top 10
         const sortedOrders = orders
           .sort((a, b) => {
             const dateA = new Date(a.createdAt || 0).getTime();
@@ -309,7 +288,6 @@ const AdminDashboard = () => {
     loadRecentOrders();
   }, []);
 
-  // Load category data
   useEffect(() => {
     const loadCategoryData = async () => {
       setLoadingCategoryData(true);
@@ -599,8 +577,6 @@ const AdminDashboard = () => {
                               outerRadius={90}
                               paddingAngle={5}
                               dataKey="value"
-                              // Ẩn nhãn trực tiếp trên lát cắt để dữ liệu không bị dôi ra ngoài,
-                              // chỉ hiển thị khi hover (tooltip) và trong danh sách bên dưới
                               label={false}
                               labelLine={false}
                             >

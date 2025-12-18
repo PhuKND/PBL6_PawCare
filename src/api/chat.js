@@ -2,9 +2,9 @@ import http from './http';
 import { CHAT_HISTORY_URL, CHAT_PEOPLE_URL, CHAT_SEND_URL } from '../config/server';
 
 /**
- * Lấy lịch sử chat với một người bạn (friendId là UUID)
- * @param {string} friendId - UUID của người bạn
- * @returns {Promise<Array>} - Mảng các tin nhắn đã normalize
+ * 
+ * @param {string} friendId
+ * @returns {Promise<Array>} 
  */
 export async function getChatHistory(friendId) {
   try {
@@ -26,8 +26,8 @@ export async function getChatHistory(friendId) {
 }
 
 /**
- * Lấy danh sách người đã từng chat với current user
- * @returns {Promise<Array>} - Mảng các UserResponse
+ *
+ * @returns {Promise<Array>}
  */
 export async function getChatPeople() {
   try {
@@ -47,11 +47,11 @@ export async function getChatPeople() {
 }
 
 /**
- * Gửi tin nhắn qua REST (fallback khi websocket disconnect)
- * @param {string} senderId - UUID của người gửi
- * @param {string} receiverId - UUID của người nhận
- * @param {string} content - Nội dung tin nhắn
- * @returns {Promise<Object|null>} - Response từ server hoặc null nếu lỗi
+ *
+ * @param {string} senderId
+ * @param {string} receiverId
+ * @param {string} content
+ * @returns {Promise<Object|null>}
  */
 export async function sendChatRest(senderId, receiverId, content) {
   try {
@@ -68,9 +68,9 @@ export async function sendChatRest(senderId, receiverId, content) {
 }
 
 /**
- * Normalize message từ backend về format thống nhất
- * @param {Object} raw - Message raw từ backend
- * @returns {Object} - Message đã normalize
+ *
+ * @param {Object} raw
+ * @returns {Object}
  */
 export function normalizeMessage(raw) {
   if (!raw) return null;

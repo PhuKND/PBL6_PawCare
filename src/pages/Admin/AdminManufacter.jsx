@@ -78,10 +78,10 @@ const AdminManufacter = () => {
     city: '',
     phone: '',
     email: '',
-    foundingDate: '', // YYYY-MM-DD (for <input type="date" />)
-    thumbnailUrl: '', // existing image url
+    foundingDate: '',
+    thumbnailUrl: '',
     position: '',
-    imageFile: null // new file from user
+    imageFile: null
   });
 
   const showToast = (message, severity = 'success') => {
@@ -100,7 +100,6 @@ const AdminManufacter = () => {
   }, []);
 
   const formatDateInput = (value) => {
-    // ISO -> YYYY-MM-DD for input date (use UTC to avoid timezone shift)
     if (!value) return '';
     const d = new Date(value);
     if (Number.isNaN(d.getTime())) return '';
@@ -111,7 +110,6 @@ const AdminManufacter = () => {
   };
 
   const toSlashDate = (yyyyMmDd) => {
-    // "2025-01-25" -> "2025/01/25" (match Postman)
     if (!yyyyMmDd || typeof yyyyMmDd !== 'string') return '';
     const parts = yyyyMmDd.split('-');
     if (parts.length !== 3) return '';
@@ -166,7 +164,6 @@ const AdminManufacter = () => {
   }, [loadManufacturers]);
 
   useEffect(() => {
-    // Preview priority: new file > existing thumbnailUrl
     if (form.imageFile) {
       const objectUrl = URL.createObjectURL(form.imageFile);
       setPreviewUrl(objectUrl);
@@ -256,34 +253,28 @@ const AdminManufacter = () => {
       fd.append('phone', (form.phone || '').trim());
       fd.append('email', (form.email || '').trim());
 
-      // foundingDate: send as YYYY/MM/DD like Postman (backend already accepts this)
       if (form.foundingDate) {
         const slashDate = toSlashDate(form.foundingDate);
         if (slashDate) fd.append('foundingDate', slashDate);
       }
 
-      // position: always send if user entered something (server will parse number)
       if (form.position !== undefined && form.position !== null && String(form.position).trim() !== '') {
         fd.append('position', String(form.position).trim());
       }
 
-      // image: match Postman behavior (always send image on PUT)
       if (form.imageFile) {
         fd.append('image', form.imageFile);
       } else if (isEdit && form.thumbnailUrl) {
-        // Try to re-upload existing image so backend won't reject missing image
         try {
           const existing = await urlToFile(form.thumbnailUrl, 'existing');
           fd.append('image', existing);
         } catch (e) {
-          // If cannot fetch due to CORS/blocked, tell user to pick a new image
           console.warn('Cannot re-upload existing image:', e);
           showToast('Không tải được ảnh hiện tại. Vui lòng chọn ảnh mới để cập nhật.', 'warning');
         }
       }
 
       const config = {
-        // Important: override any default JSON headers from http.js
         headers: { 'Content-Type': 'multipart/form-data' }
       };
 

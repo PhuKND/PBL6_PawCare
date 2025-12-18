@@ -476,7 +476,6 @@ const Header = ({ onSearch }) => {
                 </motion.div>
               )}
 
-              {/* Cart (one place only) */}
               <motion.div whileHover={{ scale: 1.1 }}>
                 <Box
                   sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', cursor: 'pointer' }}
@@ -500,14 +499,12 @@ const Header = ({ onSearch }) => {
                 </Box>
               </motion.div>
 
-              {/* Mobile menu button */}
               <IconButton onClick={toggleMenu} sx={{ display: { xs: 'block', lg: 'none' } }}>
                 <MenuIcon />
               </IconButton>
             </Box>
           </Toolbar>
 
-          {/* Search (mobile) */}
           <Box sx={{ display: { xs: 'block', lg: 'none' }, pb: 2 }}>
             <form onSubmit={handleSearch}>
               <Search sx={{ bgcolor: 'grey.100', color: 'text.primary' }}>
@@ -526,7 +523,6 @@ const Header = ({ onSearch }) => {
         </Container>
       </AppBar>
 
-      {/* Categories (desktop) */}
       <Box sx={{ bgcolor: 'primary.main', color: 'white' }}>
         <Container maxWidth="lg">
           <Box
@@ -552,7 +548,6 @@ const Header = ({ onSearch }) => {
         </Container>
       </Box>
 
-      {/* Drawer (mobile) */}
       <Drawer
         anchor="top"
         open={isMenuOpen}
@@ -598,7 +593,6 @@ const Header = ({ onSearch }) => {
 
             {isLoggedIn && (
               <>
-                {/* Admin */}
                 {userRole === 'ADMIN' && (
                   <ListItemButton
                     onClick={() => {
@@ -688,7 +682,6 @@ const Header = ({ onSearch }) => {
         </Box>
       </Drawer>
 
-      {/* Auth dialog (Cart) */}
       <Dialog open={authDialogOpen} onClose={() => setAuthDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 700 }}>Yêu cầu đăng nhập</DialogTitle>
         <DialogContent dividers>

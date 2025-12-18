@@ -43,12 +43,10 @@ export default function ChatWindow({
   const bottomRef = useRef(null);
   const messagesMapRef = useRef(new Map());
 
-  // Normalize incoming message từ WebSocket
   const handleIncomingMessage = useCallback((rawMessage) => {
     const normalized = normalizeMessage(rawMessage);
     if (!normalized) return;
 
-    // Kiểm tra xem tin nhắn có thuộc cuộc trò chuyện này không
     const isRelevant = 
       (normalized.senderId === currentUser?.id && normalized.receiverId === partnerUser?.id) ||
       (normalized.senderId === partnerUser?.id && normalized.receiverId === currentUser?.id);
@@ -57,20 +55,42 @@ export default function ChatWindow({
       return;
     }
 
-    // Dedupe theo id
     const messageId = normalized.id;
     if (messagesMapRef.current.has(messageId)) {
       return;
     }
 
     messagesMapRef.current.set(messageId, normalized);
+    
     setMessages((prev) => {
       if (prev.some(m => m.id === messageId)) {
         return prev;
       }
+
+      if (normalized.senderId === currentUser?.id) {
+        const now = Date.now();
+        const tempMessageIndex = prev.findIndex(m => {
+          if (m.id && m.id.startsWith('temp-') && m.content === normalized.content) {
+            const tempTime = new Date(m.createdAt || 0).getTime();
+            const diff = Math.abs(now - tempTime);
+            return diff < 5000;
+          }
+          return false;
+        });
+
+        if (tempMessageIndex !== -1) {
+          const updated = [...prev];
+          updated[tempMessageIndex] = normalized;
+          updated.sort((a, b) => {
+            const dateA = new Date(a.createdAt || 0).getTime();
+            const dateB = new Date(b.createdAt || 0).getTime();
+            return dateA - dateB;
+          });
+          return updated;
+        }
+      }
       
       const updated = [...prev, normalized];
-      // Sort theo createdAt
       updated.sort((a, b) => {
         const dateA = new Date(a.createdAt || 0).getTime();
         const dateB = new Date(b.createdAt || 0).getTime();
@@ -82,7 +102,6 @@ export default function ChatWindow({
 
   const { connected, sendMessage: sendMessageWS } = useChatSocket(currentUser?.id, handleIncomingMessage);
 
-  // Load lịch sử chat khi mount hoặc đổi partner
   useEffect(() => {
     if (!currentUser?.id || !partnerUser?.id) {
       setLoading(false);
@@ -95,7 +114,6 @@ export default function ChatWindow({
         messagesMapRef.current.clear();
         const historyRaw = await getChatHistory(partnerUser.id);
         
-        // Normalize và dedupe
         const normalized = historyRaw
           .map(normalizeMessage)
           .filter(Boolean);
@@ -104,7 +122,6 @@ export default function ChatWindow({
           messagesMapRef.current.set(msg.id, msg);
         });
         
-        // Sort theo createdAt
         normalized.sort((a, b) => {
           const dateA = new Date(a.createdAt || 0).getTime();
           const dateB = new Date(b.createdAt || 0).getTime();
@@ -122,7 +139,6 @@ export default function ChatWindow({
     loadHistory();
   }, [currentUser?.id, partnerUser?.id]);
 
-  // Auto scroll to bottom khi có tin nhắn mới
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -140,8 +156,8 @@ export default function ChatWindow({
     };
 
     setSending(true);
+    setInput('');
 
-    // Optimistic UI: thêm temp message
     const tempId = `temp-${Date.now()}-${Math.random()}`;
     const tempMessage = normalizeMessage({
       id: tempId,
@@ -153,6 +169,8 @@ export default function ChatWindow({
       createdAt: new Date().toISOString()
     });
 
+    messagesMapRef.current.set(tempId, tempMessage);
+
     setMessages((prev) => {
       const updated = [...prev, tempMessage];
       updated.sort((a, b) => {
@@ -162,34 +180,35 @@ export default function ChatWindow({
       });
       return updated;
     });
-    setInput('');
 
-    // Gửi qua WebSocket
     const success = sendMessageWS(messageData);
     
     if (!success && connected === false) {
-      // Fallback: gửi qua REST nếu WebSocket chưa kết nối
       console.warn('WebSocket not connected, trying REST fallback');
-      const restResult = await sendChatRest(messageData.senderId, messageData.receiverId, messageData.content);
-      if (restResult) {
-        // Remove temp message và thêm message từ server
-        setMessages((prev) => {
-          const filtered = prev.filter(m => m.id !== tempId);
+      try {
+        const restResult = await sendChatRest(messageData.senderId, messageData.receiverId, messageData.content);
+        if (restResult) {
           const serverMsg = normalizeMessage(restResult);
           if (serverMsg) {
+            messagesMapRef.current.delete(tempId);
             messagesMapRef.current.set(serverMsg.id, serverMsg);
-            filtered.push(serverMsg);
-            filtered.sort((a, b) => {
-              const dateA = new Date(a.createdAt || 0).getTime();
-              const dateB = new Date(b.createdAt || 0).getTime();
-              return dateA - dateB;
+            
+            setMessages((prev) => {
+              const filtered = prev.filter(m => m.id !== tempId);
+              filtered.push(serverMsg);
+              filtered.sort((a, b) => {
+                const dateA = new Date(a.createdAt || 0).getTime();
+                const dateB = new Date(b.createdAt || 0).getTime();
+                return dateA - dateB;
+              });
+              return filtered;
             });
           }
-          return filtered;
-        });
-      } else {
-        // Nếu REST cũng fail, giữ temp message (có thể thêm retry logic sau)
-        console.error('Failed to send message via REST');
+        } else {
+          console.error('Failed to send message via REST');
+        }
+      } catch (err) {
+        console.error('Error sending via REST:', err);
       }
     }
     

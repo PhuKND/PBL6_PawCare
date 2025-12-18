@@ -7,7 +7,6 @@ import {
   Typography,
   Avatar,
   TextField,
-  Button,
   Chip,
   useTheme,
   useMediaQuery,
@@ -17,15 +16,14 @@ import {
   ListItemText,
   CircularProgress,
   Grid,
-  InputAdornment
+  InputAdornment,
+  Alert
 } from '@mui/material';
 import {
   Support as SupportIcon,
   Person as PersonIcon,
   Search as SearchIcon,
-  Chat as ChatIcon,
-  Phone as PhoneIcon,
-  Email as EmailIcon
+  Chat as ChatIcon
 } from '@mui/icons-material';
 import http from '../../api/http';
 import { getChatPeople } from '../../api/chat';
@@ -37,31 +35,58 @@ export default function AdminSupport() {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [loadingAdmin, setLoadingAdmin] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [error, setError] = useState('');
 
-  // Get current admin user (phải có id + username)
-  const currentUserRaw = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUser = {
-    id: currentUserRaw.id || currentUserRaw.userId,
-    username: currentUserRaw.username || 'admin'
-  };
-
+  // Load admin info và user list khi component mount
   useEffect(() => {
-    loadUsers();
-  }, []);
+    const loadData = async () => {
+      try {
+        setLoadingAdmin(true);
+        setError('');
 
-  const loadUsers = useCallback(async () => {
-    try {
-      setLoading(true);
-      // Dùng /chat/people thay vì /users/all
-      const userList = await getChatPeople();
-      setUsers(userList);
-    } catch (err) {
-      console.error('Error loading chat people:', err);
-      setUsers([]);
-    } finally {
-      setLoading(false);
-    }
+        // Gọi API để lấy admin info
+        const adminResponse = await http.get('/users/admin-info');
+        const adminData = adminResponse?.data?.data || adminResponse?.data;
+
+        if (!adminData?.id) {
+          throw new Error('Không thể lấy thông tin admin. Vui lòng thử lại sau.');
+        }
+
+        // Set currentUser (admin) với ID từ API
+        const adminUser = {
+          id: adminData.id,
+          username: adminData.email?.split('@')[0] || 'admin',
+          fullName: adminData.fullName || 'Admin',
+          email: adminData.email
+        };
+
+        setCurrentUser(adminUser);
+
+        // Load danh sách users đã chat
+        try {
+          const userList = await getChatPeople();
+          setUsers(userList);
+        } catch (err) {
+          console.error('Error loading chat people:', err);
+          setUsers([]);
+        }
+      } catch (err) {
+        console.error('Error loading admin data:', err);
+        const errorMessage = 
+          err?.response?.data?.message || 
+          err?.message || 
+          'Không thể tải thông tin. Vui lòng thử lại.';
+        setError(errorMessage);
+      } finally {
+        setLoadingAdmin(false);
+        setLoading(false);
+      }
+    };
+
+    loadData();
   }, []);
 
   const quickPrompts = [
@@ -107,17 +132,54 @@ export default function AdminSupport() {
             </Typography>
           </Box>
         </Box>
-        {/* <Box sx={{ display: { xs: 'none', sm: 'flex' }, gap: 1 }}>
-          <Button variant="outlined" size="small" startIcon={<PhoneIcon />}>
-            Gọi
-          </Button>
-          <Button variant="outlined" size="small" startIcon={<EmailIcon />}>
-            Email
-          </Button>
-        </Box> */}
       </Box>
     );
   }, [users, isMobile]);
+
+  // Loading state khi đang load admin info
+  if (loadingAdmin) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+          <Box sx={{ textAlign: 'center' }}>
+            <CircularProgress size={60} sx={{ mb: 2 }} />
+            <Typography variant="body1" color="text.secondary">
+              Đang tải thông tin admin...
+            </Typography>
+          </Box>
+        </Box>
+      </Container>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="error" sx={{ borderRadius: 2 }}>
+          <Typography variant="h6" sx={{ mb: 1 }}>
+            Lỗi tải dữ liệu
+          </Typography>
+          <Typography variant="body2">
+            {error}
+          </Typography>
+        </Alert>
+      </Container>
+    );
+  }
+
+  // Kiểm tra đã có admin info
+  if (!currentUser?.id) {
+    return (
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          <Typography variant="body1">
+            Không thể khởi tạo chat. Vui lòng thử lại sau.
+          </Typography>
+        </Alert>
+      </Container>
+    );
+  }
 
   return (
     <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -224,7 +286,7 @@ export default function AdminSupport() {
           {/* Chat Area */}
           <Grid item xs={12} md={8}>
             <Paper elevation={2} sx={{ borderRadius: 3, overflow: 'hidden', height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
-              {selectedUser && selectedUser.id ? (
+              {selectedUser && selectedUser.id && currentUser ? (
                 <ChatWindow
                   currentUser={currentUser}
                   partnerUser={{

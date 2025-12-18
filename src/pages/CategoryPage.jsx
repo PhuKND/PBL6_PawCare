@@ -269,7 +269,7 @@ export default function CategoryPage() {
                                 </Typography>
                               )}
                             </Box>
-                            <Button fullWidth variant="contained">Thêm vào giỏ</Button>
+                            <Button fullWidth variant="contained">Chọn mua</Button>
                           </>
                         )}
                       </CardContent>

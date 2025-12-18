@@ -75,7 +75,6 @@ export default function AdminHDSD() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Header */}
           <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
             <Avatar
               sx={{
@@ -96,7 +95,6 @@ export default function AdminHDSD() {
             </Box>
           </Box>
 
-          {/* Quick principles cards */}
           <Grid container spacing={3} sx={{ mb: 4 }}>
             <Grid item xs={12} md={3}>
               <Paper sx={{ p: 2.5, borderRadius: 3 }} elevation={1}>
@@ -169,7 +167,6 @@ export default function AdminHDSD() {
           </Alert>
 
           <Grid container spacing={3}>
-            {/* TOC */}
             <Grid item xs={12} md={3}>
               <Paper sx={{ p: 2.5, borderRadius: 3, position: { md: 'sticky' }, top: 96 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
@@ -203,9 +200,7 @@ export default function AdminHDSD() {
               </Paper>
             </Grid>
 
-            {/* Content */}
             <Grid item xs={12} md={9}>
-              {/* Overview */}
               <Paper
                 id="overview"
                 sx={{ p: 3, borderRadius: 3, mb: 3 }}
@@ -239,7 +234,6 @@ export default function AdminHDSD() {
                 </Typography>
               </Paper>
 
-              {/* Section: Dashboard */}
               <Accordion defaultExpanded id="dashboard" sx={{ borderRadius: 3, mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -306,7 +300,6 @@ export default function AdminHDSD() {
                 </AccordionDetails>
               </Accordion>
 
-              {/* Section: Users */}
               <Accordion id="users" sx={{ borderRadius: 3, mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -373,7 +366,6 @@ export default function AdminHDSD() {
                 </AccordionDetails>
               </Accordion>
 
-              {/* Section: Orders */}
               <Accordion id="orders" sx={{ borderRadius: 3, mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -457,7 +449,6 @@ export default function AdminHDSD() {
                 </AccordionDetails>
               </Accordion>
 
-              {/* Section: Products */}
               <Accordion id="products" sx={{ borderRadius: 3, mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -571,7 +562,6 @@ export default function AdminHDSD() {
                 </AccordionDetails>
               </Accordion>
 
-              {/* Section: Categories */}
               <Accordion id="categories" sx={{ borderRadius: 3, mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -638,7 +628,6 @@ export default function AdminHDSD() {
                 </AccordionDetails>
               </Accordion>
 
-              {/* Section: Manufacturers */}
               <Accordion id="manufacturers" sx={{ borderRadius: 3, mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -704,7 +693,6 @@ export default function AdminHDSD() {
                 </AccordionDetails>
               </Accordion>
 
-              {/* Section: Support */}
               <Accordion id="support" sx={{ borderRadius: 3, mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
@@ -761,7 +749,6 @@ export default function AdminHDSD() {
                 </AccordionDetails>
               </Accordion>
 
-              {/* Section: Troubleshooting */}
               <Accordion id="troubleshooting" sx={{ borderRadius: 3, mb: 2 }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>

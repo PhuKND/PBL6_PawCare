@@ -4,10 +4,10 @@ import SockJS from 'sockjs-client';
 import { WS_URL } from '../config/server';
 
 /**
- * Hook để quản lý WebSocket connection cho chat
- * @param {string} currentUserId - UUID của user hiện tại (KHÔNG phải username)
- * @param {Function} onMessage - Callback khi nhận được tin nhắn mới
- * @returns {Object} - { connected, sendMessage, disconnect }
+ *
+ * @param {string} currentUserId
+ * @param {Function} onMessage
+ * @returns {Object}
  */
 export function useChatSocket(currentUserId, onMessage) {
   const [connected, setConnected] = useState(false);
@@ -41,7 +41,6 @@ export function useChatSocket(currentUserId, onMessage) {
         console.log('WebSocket connected for user:', currentUserId);
         setConnected(true);
 
-        // Subscribe vào queue của currentUserId (UUID)
         const subscription = client.subscribe(
           `/queue/chat.${currentUserId}`,
           (message) => {
@@ -92,9 +91,9 @@ export function useChatSocket(currentUserId, onMessage) {
   }, [currentUserId]);
 
   /**
-   * Gửi tin nhắn qua WebSocket
-   * @param {Object} messageData - { senderId, receiverId, content }
-   * @returns {boolean} - true nếu gửi thành công
+   *
+   * @param {Object} messageData
+   * @returns {boolean}
    */
   const sendMessage = useCallback((messageData) => {
     if (!clientRef.current || !clientRef.current.connected) {
@@ -119,7 +118,7 @@ export function useChatSocket(currentUserId, onMessage) {
   }, []);
 
   /**
-   * Ngắt kết nối WebSocket
+   *
    */
   const disconnect = useCallback(() => {
     if (subscriptionRef.current) {

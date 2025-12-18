@@ -138,7 +138,6 @@ const getPaymentStatusIcon = (status) => {
   }
 };
 
-// Normalize order status coming from API (also support "CANCELED")
 const normalizeOrderStatus = (status) => {
   const s = (status || 'PENDING').toString().toUpperCase();
   if (s === 'CANCELED') return 'CANCELLED';
@@ -153,7 +152,6 @@ const STATUS_LABELS = {
   CANCELLED: 'Đã hủy',
 };
 
-// Allowed transitions (workflow rules)
 const STATUS_TRANSITIONS = {
   PENDING: ['CONFIRMED', 'CANCELLED'],
   CONFIRMED: ['SHIPPING', 'CANCELLED'],
@@ -186,7 +184,7 @@ const AdminOrder = () => {
   const [updatingStatus, setUpdatingStatus] = useState({});
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
   const [sortField, setSortField] = useState('createdAt');
-  const [sortOrder, setSortOrder] = useState('desc'); // 'asc' or 'desc'
+  const [sortOrder, setSortOrder] = useState('desc');
 
   const loadOrders = useCallback(async () => {
     try {
@@ -279,7 +277,6 @@ const AdminOrder = () => {
 const filteredOrders = useMemo(() => {
     let result = orders;
     
-    // Filter by search term
     if (searchTerm) {
       const q = searchTerm.toLowerCase();
       result = result.filter((order) => {
@@ -291,7 +288,6 @@ const filteredOrders = useMemo(() => {
       });
     }
 
-    // Sort orders
     if (sortField) {
       result = [...result].sort((a, b) => {
         let aValue, bValue;
@@ -326,18 +322,17 @@ const filteredOrders = useMemo(() => {
             bValue = (b.orderPayment?.status || '').toLowerCase();
             break;
           case 'status':
-            // Sắp xếp theo thứ tự workflow: PENDING -> CONFIRMED -> SHIPPING -> COMPLETED -> CANCELLED
             const statusOrder = {
               'PENDING': 1,
               'CONFIRMED': 2,
               'SHIPPING': 3,
               'COMPLETED': 4,
               'CANCELLED': 5,
-              'CANCELED': 5 // Hỗ trợ cả CANCELED
+              'CANCELED': 5
             };
             const aStatus = (a.status || '').toUpperCase();
             const bStatus = (b.status || '').toUpperCase();
-            aValue = statusOrder[aStatus] || 999; // Status không xác định sẽ ở cuối
+            aValue = statusOrder[aStatus] || 999;
             bValue = statusOrder[bStatus] || 999;
             break;
           default:

@@ -60,6 +60,8 @@ const HomePage = () => {
   const [loadingTopSelling, setLoadingTopSelling] = useState(true);
   const [featuredCategories, setFeaturedCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
+  const [flashSaleProducts, setFlashSaleProducts] = useState([]);
+  const [loadingFlashSale, setLoadingFlashSale] = useState(true);
 
   const heroSlides = [
     {
@@ -169,68 +171,35 @@ const HomePage = () => {
     loadCategories();
   }, []);
 
-  const flashSaleProducts = [
-    {
-      id: 201,
-      name: 'Mặt nạ cấp ẩm Banobagi Stem Cell Vitamin Mask dưỡng da trắng sáng',
-      price: '218.400',
-      originalPrice: '280.000',
-      discount: 22,
-      unit: 'Hộp',
-      packaging: 'Hộp x 1',
-      image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop'
-    },
-    {
-      id: 202,
-      name: 'Kem dưỡng ẩm Vichy Collagen Liftactiv Collagen Specialist',
-      price: '982.800',
-      originalPrice: '1.260.000',
-      discount: 22,
-      unit: 'Hộp',
-      packaging: 'Hộp x 1',
-      image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400&h=400&fit=crop'
-    },
-    {
-      id: 203,
-      name: 'Serum Vichy Liftactiv B3 Serum chống lão hóa',
-      price: '998.400',
-      originalPrice: '1.280.000',
-      discount: 22,
-      unit: 'Hộp',
-      packaging: 'Hộp x 1',
-      image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop'
-    },
-    {
-      id: 204,
-      name: 'Kem dưỡng SVR Cicavit+ phục hồi da',
-      price: '260.520',
-      originalPrice: '334.000',
-      discount: 22,
-      unit: 'Hộp',
-      packaging: 'Hộp x 1',
-      image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400&h=400&fit=crop'
-    },
-    {
-      id: 205,
-      name: 'Mặt nạ Super Aqua Mask Pack cấp ẩm sâu',
-      price: '171.600',
-      originalPrice: '220.000',
-      discount: 22,
-      unit: 'Hộp',
-      packaging: 'Hộp x 1',
-      image: 'https://images.unsplash.com/photo-1556228720-195a672e8a03?w=400&h=400&fit=crop'
-    },
-    {
-      id: 206,
-      name: 'Mặt nạ Real Retinol Mask Pack chống lão hóa',
-      price: '171.600',
-      originalPrice: '220.000',
-      discount: 22,
-      unit: 'Hộp',
-      packaging: 'Hộp x 1',
-      image: 'https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=400&h=400&fit=crop'
-    }
-  ];
+  // Load flash sale products from API
+  useEffect(() => {
+    const loadFlashSaleProducts = async () => {
+      try {
+        setLoadingFlashSale(true);
+        const response = await http.get('/products/flash-selling', {
+          params: { limit: 10 }
+        });
+        
+        let products = [];
+        if (Array.isArray(response?.data?.data)) {
+          products = response.data.data;
+        } else if (Array.isArray(response?.data)) {
+          products = response.data;
+        } else if (Array.isArray(response)) {
+          products = response;
+        }
+        
+        setFlashSaleProducts(products);
+      } catch (err) {
+        console.error('Error loading flash sale products:', err);
+        setFlashSaleProducts([]);
+      } finally {
+        setLoadingFlashSale(false);
+      }
+    };
+    
+    loadFlashSaleProducts();
+  }, []);
 
   // Load top selling products from API
   useEffect(() => {
@@ -764,120 +733,185 @@ const HomePage = () => {
                   }
                 }}
               >
-                {flashSaleProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    whileInView={{ opacity: 1, x: 0 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 0.4, delay: index * 0.1 }}
-                    style={{ minWidth: 280 }}
-                  >
-                    <Card
-                      onClick={() => navigate(`/product/${product.id}`)}
-                      sx={{
-                        height: '100%',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s',
-                        bgcolor: 'white',
-                        '&:hover': {
-                          transform: 'translateY(-4px)',
-                          boxShadow: theme.shadows[8]
-                        }
-                      }}
-                    >
-                      <Box sx={{ position: 'relative' }}>
-                        <CardMedia
-                          component="img"
-                          image={product.image}
-                          alt={product.name}
-                          sx={{ height: 200, objectFit: 'cover' }}
-                        />
-                        <Chip
-                          label={`-${product.discount}%`}
+                {loadingFlashSale ? (
+                  <Box sx={{ display: 'flex', gap: 2, width: '100%', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                    <Typography variant="body2" color="text.secondary" sx={{ ml: 2 }}>
+                      Đang tải sản phẩm flash sale...
+                    </Typography>
+                  </Box>
+                ) : flashSaleProducts.length === 0 ? (
+                  <Box sx={{ display: 'flex', gap: 2, width: '100%', justifyContent: 'center', py: 4 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Chưa có sản phẩm flash sale
+                    </Typography>
+                  </Box>
+                ) : (
+                  flashSaleProducts.map((product, index) => {
+                    const discountPercent = product.discountPercent ? Number(product.discountPercent).toFixed(1) : 0;
+                    const discountPrice = product.discountPrice || product.originPrice || 0;
+                    const originPrice = product.originPrice || 0;
+                    
+                    return (
+                      <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.4, delay: index * 0.1 }}
+                        style={{ minWidth: 280 }}
+                      >
+                        <Card
+                          onClick={() => navigate(`/product/${product.id}`)}
                           sx={{
-                            position: 'absolute',
-                            top: 8,
-                            left: 8,
-                            bgcolor: '#D32F2F',
-                            color: 'white',
-                            fontWeight: 'bold',
-                            fontSize: '0.875rem',
-                            height: 28
-                          }}
-                        />
-                      </Box>
-                      <CardContent sx={{ p: 2 }}>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            mb: 1.5,
-                            height: 40,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            display: '-webkit-box',
-                            WebkitLineClamp: 2,
-                            WebkitBoxOrient: 'vertical',
-                            lineHeight: 1.4
+                            height: '100%',
+                            cursor: 'pointer',
+                            transition: 'all 0.3s',
+                            bgcolor: 'white',
+                            '&:hover': {
+                              transform: 'translateY(-4px)',
+                              boxShadow: theme.shadows[8]
+                            }
                           }}
                         >
-                          {product.name}
-                        </Typography>
-                        <Typography
-                          variant="h6"
-                          sx={{
-                            fontWeight: 'bold',
-                            color: theme.palette.primary.main,
-                            mb: 0.5,
-                            fontSize: '1.1rem'
-                          }}
-                        >
-                          {product.price}₫ / {product.unit}
-                        </Typography>
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: 'text.secondary',
-                            textDecoration: 'line-through',
-                            mb: 1.5
-                          }}
-                        >
-                          {product.originalPrice}₫
-                        </Typography>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.5,
-                            bgcolor: '#FFE0B2',
-                            px: 1,
-                            py: 0.5,
-                            borderRadius: 1,
-                            mb: 1.5,
-                            width: 'fit-content'
-                          }}
-                        >
-                          <FireIcon sx={{ fontSize: 16, color: '#FF9800' }} />
-                          <Typography variant="caption" sx={{ color: '#E65100', fontWeight: 'bold' }}>
-                            Ưu đãi giá sốc
-                          </Typography>
-                        </Box>
-                        <Button
-                          fullWidth
-                          variant="contained"
-                          sx={{
-                            bgcolor: theme.palette.primary.main,
-                            color: 'white',
-                            fontWeight: 'bold',
-                            '&:hover': { bgcolor: theme.palette.primary.dark }
-                          }}
-                        >
-                          Chọn mua
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                ))}
+                          <Box sx={{ position: 'relative' }}>
+                            <CardMedia
+                              component="img"
+                              image={product.imageUrl || 'https://via.placeholder.com/280x200?text=No+Image'}
+                              alt={product.name}
+                              sx={{ height: 200, objectFit: 'cover' }}
+                            />
+                            {discountPercent > 0 && (
+                              <Chip
+                                label={`-${discountPercent}%`}
+                                sx={{
+                                  position: 'absolute',
+                                  top: 8,
+                                  left: 8,
+                                  bgcolor: '#D32F2F',
+                                  color: 'white',
+                                  fontWeight: 'bold',
+                                  fontSize: '0.875rem',
+                                  height: 28
+                                }}
+                              />
+                            )}
+                            {product.soldQuantity > 0 && (
+                              <Chip
+                                label={`Đã bán: ${product.soldQuantity.toLocaleString('vi-VN')}`}
+                                size="small"
+                                sx={{
+                                  position: 'absolute',
+                                  bottom: 8,
+                                  right: 8,
+                                  bgcolor: 'rgba(0, 0, 0, 0.6)',
+                                  color: 'white',
+                                  fontSize: '0.75rem',
+                                  height: 24
+                                }}
+                              />
+                            )}
+                          </Box>
+                          <CardContent sx={{ p: 2 }}>
+                            <Typography
+                              variant="body2"
+                              sx={{
+                                mb: 1.5,
+                                minHeight: 40,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                display: '-webkit-box',
+                                WebkitLineClamp: 2,
+                                WebkitBoxOrient: 'vertical',
+                                lineHeight: 1.4,
+                                fontWeight: 500
+                              }}
+                            >
+                              {product.name}
+                            </Typography>
+                            {product.description && (
+                              <Typography
+                                variant="caption"
+                                color="text.secondary"
+                                sx={{
+                                  mb: 1,
+                                  display: '-webkit-box',
+                                  WebkitLineClamp: 1,
+                                  WebkitBoxOrient: 'vertical',
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                {product.description}
+                              </Typography>
+                            )}
+                            <Typography
+                              variant="h6"
+                              sx={{
+                                fontWeight: 'bold',
+                                color: theme.palette.primary.main,
+                                mb: 0.5,
+                                fontSize: '1.1rem'
+                              }}
+                            >
+                              {formatCurrencyVnd(discountPrice)}
+                            </Typography>
+                            {originPrice > discountPrice && (
+                              <Typography
+                                variant="body2"
+                                sx={{
+                                  color: 'text.secondary',
+                                  textDecoration: 'line-through',
+                                  mb: 1.5
+                                }}
+                              >
+                                {formatCurrencyVnd(originPrice)}
+                              </Typography>
+                            )}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 0.5,
+                                bgcolor: '#FFE0B2',
+                                px: 1,
+                                py: 0.5,
+                                borderRadius: 1,
+                                mb: 1.5,
+                                width: 'fit-content'
+                              }}
+                            >
+                              <FireIcon sx={{ fontSize: 16, color: '#FF9800' }} />
+                              <Typography variant="caption" sx={{ color: '#E65100', fontWeight: 'bold' }}>
+                                Ưu đãi giá sốc
+                              </Typography>
+                            </Box>
+                            {product.quantity !== undefined && (
+                              <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1.5, display: 'block' }}>
+                                Tồn kho: {product.quantity.toLocaleString('vi-VN')}
+                              </Typography>
+                            )}
+                            <Button
+                              fullWidth
+                              variant="contained"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                navigate(`/product/${product.id}`);
+                              }}
+                              sx={{
+                                bgcolor: theme.palette.primary.main,
+                                color: 'white',
+                                fontWeight: 'bold',
+                                '&:hover': { bgcolor: theme.palette.primary.dark }
+                              }}
+                            >
+                              Chọn mua
+                            </Button>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })
+                )}
               </Box>
 
               <IconButton

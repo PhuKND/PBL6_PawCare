@@ -124,10 +124,11 @@ export default function ProductCard({ product, loading = false }) {
             variant="contained"
             onClick={(e) => {
               e.stopPropagation();
+              navigate(`/product/${product.id}`);
             }}
             sx={{ mt: 'auto' }}
           >
-            Thêm vào giỏ
+            Chọn mua
           </Button>
         </CardContent>
       </Card>

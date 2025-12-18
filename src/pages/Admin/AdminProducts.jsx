@@ -303,11 +303,9 @@ const AdminProducts = () => {
 
   const parseDateInput = (value) => {
     if (!value) return '';
-    // Nếu đã là format YYYY-MM-DD (cho date input) thì giữ nguyên
     if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
       return value;
     }
-    // Nếu là format DD/MM/YYYY từ API thì chuyển sang YYYY-MM-DD
     if (value.includes('/')) {
       const parts = value.split('/');
       if (parts.length === 3) {
@@ -317,7 +315,6 @@ const AdminProducts = () => {
         return `${year}-${month}-${day}`;
       }
     }
-    // Thử parse nếu là ISO string
     try {
       const d = new Date(value);
       if (!isNaN(d.getTime())) {
@@ -327,7 +324,6 @@ const AdminProducts = () => {
         return `${year}-${month}-${day}`;
       }
     } catch (e) {
-      // Ignore
     }
     return value;
   };
@@ -340,8 +336,6 @@ const AdminProducts = () => {
       setImages([]);
       setIngredients([{ name: '', amount: '', unit: '', description: '' }]);
 
-      // Load manufacturers và categories trước để đảm bảo có dữ liệu khi set form
-      // Load trực tiếp để lấy data ngay
       let manufacturersList = [];
       let categoriesList = [];
       
@@ -387,7 +381,6 @@ const AdminProducts = () => {
 
       setIngredients(ing);
 
-      // Tìm categoryId từ category name nếu không có categoryId
       let categoryIdValue = data.categoryId || '';
       if (!categoryIdValue && data.category && categoriesList.length > 0) {
         const foundCategory = categoriesList.find(c => 
@@ -433,11 +426,9 @@ const AdminProducts = () => {
 
   const formatDateForAPI = (dateString) => {
     if (!dateString) return '';
-    // Nếu đã là format DD/MM/YYYY thì giữ nguyên
     if (dateString.includes('/')) {
       return dateString;
     }
-    // Nếu là format YYYY-MM-DD thì chuyển sang DD/MM/YYYY
     const parts = dateString.split('-');
     if (parts.length === 3) {
       const year = parts[0];
@@ -451,29 +442,22 @@ const AdminProducts = () => {
   const formatDateTimeForDiscount = (dateTimeString, defaultTime = '00:00:00') => {
     if (!dateTimeString) return '';
     
-    // datetime-local format: "YYYY-MM-DDTHH:mm" hoặc "YYYY-MM-DD"
     if (dateTimeString.includes('T')) {
-      // Format: "2025-11-15T00:00" -> "2025/11/15 00:00:00" (YYYY/MM/DD HH:mm:ss)
       const [datePart, timePart] = dateTimeString.split('T');
       const [year, month, day] = datePart.split('-');
       const time = timePart ? `${timePart}:00` : defaultTime;
       return `${year}/${month}/${day} ${time}`;
     } else if (dateTimeString.includes('-')) {
-      // Format: "2025-11-15" -> "2025/11/15 00:00:00"
       const [year, month, day] = dateTimeString.split('-');
       return `${year}/${month}/${day} ${defaultTime}`;
     }
     
-    // Nếu đã có format đầy đủ YYYY/MM/DD HH:mm:ss thì giữ nguyên
     if (dateTimeString.includes('/') && dateTimeString.includes(':')) {
-      // Kiểm tra xem có đúng format YYYY/MM/DD không
       const datePart = dateTimeString.split(' ')[0];
       const parts = datePart.split('/');
       if (parts.length === 3 && parts[0].length === 4) {
-        // Đã là YYYY/MM/DD, giữ nguyên
         return dateTimeString;
       } else if (parts.length === 3 && parts[2].length === 4) {
-        // Là DD/MM/YYYY, chuyển sang YYYY/MM/DD
         const [day, month, year] = parts;
         const timePart = dateTimeString.split(' ')[1] || defaultTime;
         return `${year}/${month}/${day} ${timePart}`;
@@ -491,7 +475,6 @@ const AdminProducts = () => {
   const handleSubmitDiscount = useCallback(async () => {
     if (!discountProductId) return;
     
-    // Validate đầy đủ
     if (!discountForm.percent || !discountForm.message || !discountForm.startDate || !discountForm.endDate) {
       alert('Vui lòng điền đầy đủ thông tin giảm giá');
       return;
@@ -503,7 +486,6 @@ const AdminProducts = () => {
       return;
     }
 
-    // Validate date
     const startDateObj = new Date(discountForm.startDate);
     const endDateObj = new Date(discountForm.endDate);
     if (isNaN(startDateObj.getTime()) || isNaN(endDateObj.getTime())) {
@@ -557,7 +539,6 @@ const AdminProducts = () => {
         errorMessage = err.message;
       }
       
-      // Hiển thị chi tiết lỗi nếu có
       const errorDetails = err?.response?.data?.errors;
       if (errorDetails && Array.isArray(errorDetails)) {
         errorMessage += '\n\nChi tiết:\n' + errorDetails.map(e => `- ${e.field || e.defaultMessage || e}`).join('\n');
@@ -605,7 +586,6 @@ const AdminProducts = () => {
       return;
     }
 
-    // Check if already loaded or currently loading using functional updates
     let alreadyLoaded = false;
     let alreadyLoading = false;
 
@@ -636,7 +616,6 @@ const AdminProducts = () => {
       const detail = response?.data || response;
       if (detail) {
         setProductDetails(prev => {
-          // Only set if not already loaded (double check)
           if (prev[productId]) {
             return prev;
           }
@@ -675,7 +654,6 @@ const AdminProducts = () => {
         });
         const currentProductId = faqProductId;
         setFaqProductId(null);
-        // Reload product detail to show new FAQ
         if (currentProductId) {
           await loadProductDetail(currentProductId);
         }
@@ -709,7 +687,6 @@ const AdminProducts = () => {
 
       setDeletedProducts(productList);
 
-      // Calculate pagination
       const total = response?.totalElements || response?.total || productList.length;
       const totalPages = response?.totalPages || Math.ceil(total / 10) || 1;
       setDeletedProductsHasNext(deletedProductsPage < totalPages - 1);
@@ -761,9 +738,7 @@ const AdminProducts = () => {
       
       if (response?.data?.code === 200 || response?.data?.data) {
         alert(response?.data?.message || 'Khôi phục sản phẩm thành công!');
-        // Remove restored product from deleted products list
         setDeletedProducts(prev => prev.filter(p => p.id !== productId));
-        // Reload main products list
         await loadProducts();
       }
     } catch (err) {
@@ -781,12 +756,9 @@ const AdminProducts = () => {
       const isCurrentlyExpanded = !!newExpanded[productId];
       
       if (!isCurrentlyExpanded) {
-        // Expanding: load product detail
         newExpanded[productId] = true;
-        // Load detail asynchronously to avoid blocking state update
         Promise.resolve().then(() => loadProductDetail(productId));
       } else {
-        // Collapsing: just close
         newExpanded[productId] = false;
       }
       
@@ -845,7 +817,6 @@ const AdminProducts = () => {
       fd.append('note', (form.note || '').trim());
       fd.append('preserve', (form.preserve || '').trim());
       
-      // Chỉ append ingredients nếu có ít nhất 1 thành phần hợp lệ
       if (filteredIngredients.length > 0) {
       fd.append('ingredients', ingredientsJson); 
       }
@@ -860,7 +831,6 @@ const AdminProducts = () => {
       }
       fd.append('isActive', form.isActive ? '1' : '0');
 
-      // Chỉ append images nếu có file mới được chọn
       if (images.length > 0) {
       images.forEach((f) => fd.append('images', f));
       }
@@ -1735,7 +1705,6 @@ const AdminProducts = () => {
           </DialogTitle>
           <DialogContent dividers sx={{ maxHeight: '70vh', overflow: 'auto' }}>
             <Grid container spacing={2} sx={{ mt: 0.5 }}>
-              {/* Thông tin cơ bản */}
               <Grid item xs={12}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
                   Thông tin cơ bản
@@ -1823,7 +1792,6 @@ const AdminProducts = () => {
                 </TextField>
               </Grid>
 
-              {/* Ngày tháng */}
               <Grid item xs={12} sx={{ mt: 1 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
                   Ngày tháng
@@ -1854,7 +1822,6 @@ const AdminProducts = () => {
                 />
               </Grid>
 
-              {/* ID */}
               <Grid item xs={12} sx={{ mt: 1 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
                   Liên kết danh mục & nhà sản xuất
@@ -1863,7 +1830,6 @@ const AdminProducts = () => {
               <Grid item xs={12} sm={6}>
                 <TextField 
                   select
-                  // label="Nhà sản xuất"
                   name="manufacturerId"
                   value={form.manufacturerId}
                   onChange={handleChange}
@@ -1917,7 +1883,6 @@ const AdminProducts = () => {
                 </TextField>
               </Grid>
 
-              {/* Thông tin chi tiết */}
               <Grid item xs={12} sx={{ mt: 1 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
                   Thông tin chi tiết
@@ -1989,7 +1954,6 @@ const AdminProducts = () => {
                 />
               </Grid>
 
-              {/* Thông tin bổ sung */}
               <Grid item xs={12} sx={{ mt: 1 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
                   Thông tin bổ sung
@@ -2033,7 +1997,6 @@ const AdminProducts = () => {
                 </TextField>
               </Grid>
 
-              {/* Ingredients */}
               <Grid item xs={12} sx={{ mt: 1 }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
                   <Typography variant="subtitle2" sx={{ fontWeight: 600, color: 'primary.main' }}>
@@ -2122,7 +2085,6 @@ const AdminProducts = () => {
                 </Box>
               </Grid>
 
-              {/* Hình ảnh */}
               <Grid item xs={12} sx={{ mt: 1 }}>
                 <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'primary.main' }}>
                   Hình ảnh
@@ -2154,7 +2116,6 @@ const AdminProducts = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Discount Dialog */}
         <Dialog
           open={discountDialogOpen}
           onClose={() => !submittingDiscount && setDiscountDialogOpen(false)}
@@ -2274,7 +2235,6 @@ const AdminProducts = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog
           open={deleteDialogOpen}
           onClose={() => !deleting && setDeleteDialogOpen(false)}
@@ -2361,7 +2321,6 @@ const AdminProducts = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Deleted Products Dialog */}
         <Dialog
           open={deletedProductsDialogOpen}
           onClose={handleCloseDeletedProducts}
@@ -2623,7 +2582,6 @@ const AdminProducts = () => {
           </DialogActions>
         </Dialog>
 
-        {/* FAQ Dialog */}
         <Dialog
           open={faqDialogOpen}
           onClose={() => !submittingFAQ && setFaqDialogOpen(false)}

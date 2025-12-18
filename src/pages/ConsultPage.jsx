@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import {
   Box,
@@ -6,38 +6,84 @@ import {
   Paper,
   Typography,
   Avatar,
-  Button,
   Chip,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import {
-  Healing as HealingIcon,
-  Videocam as VideocamIcon,
-  Phone as PhoneIcon
+  Healing as HealingIcon
 } from '@mui/icons-material';
+import http from '../api/http';
 import ChatWindow from '../components/ChatWindow';
 
 export default function ConsultPage() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  // Get current user from localStorage (phải có id + username)
-  const currentUserRaw = JSON.parse(localStorage.getItem('user') || '{}');
-  const currentUser = {
-    id: currentUserRaw.id || currentUserRaw.userId,
-    username: currentUserRaw.username
-  };
-
-  // Partner user là admin support (lấy ID từ env)
-  const adminId = import.meta.env.VITE_SUPPORT_ADMIN_ID || null;
-  const partnerUser = {
-    id: adminId,
-    username: 'admin',
-    fullName: 'Bác sĩ thú y'
-  };
+  const [currentUser, setCurrentUser] = useState(null);
+  const [partnerUser, setPartnerUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   const quickPrompts = ['Ngứa da', 'Rụng lông', 'Nấm da', 'Ve/rận', 'Hôi tai'];
+
+  // Load current user info và admin info khi component mount
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        setLoading(true);
+        setError('');
+
+        // Gọi 2 API song song
+        const [userResponse, adminResponse] = await Promise.all([
+          http.get('/users/info'),
+          http.get('/users/admin-info')
+        ]);
+
+        // Parse current user (sender)
+        const userData = userResponse?.data?.data || userResponse?.data;
+        if (!userData?.id) {
+          throw new Error('Không thể lấy thông tin người dùng. Vui lòng đăng nhập lại.');
+        }
+
+        const currentUserData = {
+          id: userData.id,
+          username: userData.email?.split('@')[0] || userData.fullName || 'user',
+          fullName: userData.fullName,
+          email: userData.email
+        };
+
+        // Parse admin info
+        const adminData = adminResponse?.data?.data || adminResponse?.data;
+        if (!adminData?.id) {
+          throw new Error('Không thể lấy thông tin admin. Vui lòng thử lại sau.');
+        }
+
+        const partnerUserData = {
+          id: adminData.id,
+          username: 'admin',
+          fullName: adminData.fullName || 'Bác sĩ thú y',
+          avatarUrl: adminData.avatarUrl
+        };
+
+        setCurrentUser(currentUserData);
+        setPartnerUser(partnerUserData);
+      } catch (err) {
+        console.error('Error loading user data:', err);
+        const errorMessage = 
+          err?.response?.data?.message || 
+          err?.message || 
+          'Không thể tải thông tin. Vui lòng thử lại.';
+        setError(errorMessage);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
 
   const header = useMemo(() => (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -55,26 +101,50 @@ export default function ConsultPage() {
           </Typography>
         </Box>
       </Box>
-      
     </Box>
   ), [isMobile]);
 
-  if (!currentUser.id || !currentUser.username) {
+  // Loading state
+  if (loading) {
     return (
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="h6" color="text.secondary">
-          Vui lòng đăng nhập để sử dụng tính năng tư vấn
-        </Typography>
+        <Box sx={{ textAlign: 'center' }}>
+          <CircularProgress size={60} sx={{ mb: 2 }} />
+          <Typography variant="body1" color="text.secondary">
+            Đang tải thông tin...
+          </Typography>
+        </Box>
       </Box>
     );
   }
 
-  if (!adminId) {
+  // Error state
+  if (error) {
+    return (
+      <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4 }}>
+        <Container maxWidth="md">
+          <Alert severity="error" sx={{ borderRadius: 2 }}>
+            <Typography variant="h6" sx={{ mb: 1 }}>
+              Lỗi tải dữ liệu
+            </Typography>
+            <Typography variant="body2">
+              {error}
+            </Typography>
+          </Alert>
+        </Container>
+      </Box>
+    );
+  }
+
+  // Kiểm tra đã có đủ data
+  if (!currentUser?.id || !partnerUser?.id) {
     return (
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography variant="h6" color="text.secondary">
-          Cấu hình thiếu VITE_SUPPORT_ADMIN_ID. Vui lòng liên hệ quản trị viên.
-        </Typography>
+        <Alert severity="warning" sx={{ borderRadius: 2 }}>
+          <Typography variant="body1">
+            Không thể khởi tạo chat. Vui lòng thử lại sau.
+          </Typography>
+        </Alert>
       </Box>
     );
   }
