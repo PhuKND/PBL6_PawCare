@@ -67,7 +67,7 @@ const HomePage = () => {
     {
       id: 1,
       title: 'Chăm sóc thú cưng thông minh với công nghệ AI',
-      subtitle: 'Sử dụng AI để chẩn đoán vấn đề da và nhận diện giống loài. Sản phẩm chính hãng, tư vấn bác sĩ thú y 24/7',
+      subtitle: 'Sử dụng AI để chẩn đoán các loại côn trùng gây hại cho thú cưng',
       primaryLabel: 'Xem sản phẩm',
       secondaryLabel: 'Thử AI Hub',
       imageUrl: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800&h=600&fit=crop'
@@ -86,7 +86,7 @@ const HomePage = () => {
       subtitle: 'Flash sale hàng ngày với hàng ngàn sản phẩm chăm sóc thú cưng chất lượng cao',
       primaryLabel: 'Mua ngay',
       secondaryLabel: 'Xem ưu đãi',
-      imageUrl: 'https://images.unsplash.com/photo-1605568427561-40dd23c2acea?w=800&h=600&fit=crop'
+      imageUrl: 'https://phunugioi.com/wp-content/uploads/2022/06/Anh-cho-cute.jpg'
     }
   ];
 
@@ -144,7 +144,6 @@ const HomePage = () => {
     // }
   ];
 
-  // Featured categories loaded from API
   useEffect(() => {
     const loadCategories = async () => {
       try {
@@ -171,7 +170,6 @@ const HomePage = () => {
     loadCategories();
   }, []);
 
-  // Load flash sale products from API
   useEffect(() => {
     const loadFlashSaleProducts = async () => {
       try {
@@ -201,7 +199,6 @@ const HomePage = () => {
     loadFlashSaleProducts();
   }, []);
 
-  // Load top selling products from API
   useEffect(() => {
     const loadTopSellingProducts = async () => {
       try {
@@ -255,7 +252,6 @@ const HomePage = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      {/* Hero Banner / Slider */}
       <Box
         sx={{
           position: 'relative',
@@ -301,9 +297,10 @@ const HomePage = () => {
                     >
                       {heroSlides[currentSlide].primaryLabel}
                     </Button>
-                    <Button
+                    {/* <Button
                       variant="outlined"
                       size="large"
+                      
                       onClick={() => navigate('/consult')}
                       sx={{
                         borderColor: 'white',
@@ -314,7 +311,7 @@ const HomePage = () => {
                       }}
                     >
                       {heroSlides[currentSlide].secondaryLabel}
-                    </Button>
+                    </Button> */}
                   </Box>
                 </Grid>
                 <Grid item xs={12} md={5}>
@@ -337,7 +334,6 @@ const HomePage = () => {
             </motion.div>
           </AnimatePresence>
 
-          {/* Slider indicators */}
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, mt: 4 }}>
             {heroSlides.map((_, index) => (
               <Box
@@ -355,7 +351,6 @@ const HomePage = () => {
             ))}
           </Box>
 
-          {/* Navigation arrows */}
           <IconButton
             onClick={() => setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length)}
             sx={{
@@ -387,7 +382,6 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* Quick Action Cards */}
       <Box sx={{ py: 4, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <Grid container spacing={3}>
@@ -430,7 +424,6 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* Featured Categories Section */}
       <Box sx={{ py: 6, bgcolor: 'grey.50' }}>
         <Container maxWidth="lg">
           <motion.div
@@ -558,7 +551,6 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* Flash Sale Section */}
       <Box sx={{ py: 6, bgcolor: '#E3F2FD', position: 'relative' }}>
         <Container maxWidth="lg">
           <motion.div
@@ -567,7 +559,6 @@ const HomePage = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            {/* Header */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -594,7 +585,7 @@ const HomePage = () => {
                   </Typography>
                 </Box>
               </Box>
-              <Link
+              {/* <Link
                 href="#"
                 sx={{
                   color: 'text.secondary',
@@ -604,11 +595,10 @@ const HomePage = () => {
                 }}
               >
                 Xem thể lệ &gt;
-              </Link>
+              </Link> */}
             </Box>
 
-            {/* Schedule Tabs */}
-            <Paper sx={{ p: 2, mb: 3, bgcolor: 'white' }}>
+            {/* <Paper sx={{ p: 2, mb: 3, bgcolor: 'white' }}>
               <Tabs
                 value={flashSaleTab}
                 onChange={(e, newValue) => setFlashSaleTab(newValue)}
@@ -623,8 +613,8 @@ const HomePage = () => {
                     fontWeight: 'bold'
                   }
                 }}
-              >
-                {flashSaleSessions.map((session, index) => (
+              > */}
+                {/* {flashSaleSessions.map((session, index) => (
                   <Tab
                     key={index}
                     label={
@@ -638,12 +628,12 @@ const HomePage = () => {
                       </Box>
                     }
                   />
-                ))}
-              </Tabs>
-            </Paper>
+                ))} */}
+              {/* </Tabs>
+            </Paper> */}
 
-            {/* Countdown Timer */}
-            <Paper
+           
+            {/* <Paper
               sx={{
                 p: 2,
                 mb: 4,
@@ -697,9 +687,8 @@ const HomePage = () => {
                   }}
                 />
               </Box>
-            </Paper>
+            </Paper> */}
 
-            {/* Flash Sale Products Carousel */}
             <Box sx={{ position: 'relative' }}>
               <IconButton
                 onClick={() => scrollFlashSale('left')}
@@ -932,7 +921,6 @@ const HomePage = () => {
               </IconButton>
             </Box>
 
-            {/* View All Link */}
             <Box sx={{ textAlign: 'center', mt: 3 }}>
               <Link
                 href="#"
@@ -955,7 +943,6 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* Best-selling Products Section */}
       <Box sx={{ py: 6, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <motion.div
@@ -964,7 +951,6 @@ const HomePage = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            {/* Header */}
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
               <Paper
                 sx={{
@@ -997,7 +983,6 @@ const HomePage = () => {
               </Link>
             </Box>
 
-            {/* Best Seller Products Carousel */}
             <Box sx={{ position: 'relative' }}>
               <IconButton
                 onClick={() => scrollBestSeller('left')}
@@ -1225,7 +1210,6 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* AI Hub Section */}
       <Box sx={{ py: 6, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <motion.div
@@ -1371,7 +1355,6 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      {/* Trust / Info Section */}
       <Box sx={{ py: 6, bgcolor: 'grey.50' }}>
         <Container maxWidth="lg">
           <motion.div

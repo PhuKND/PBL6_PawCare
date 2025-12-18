@@ -628,7 +628,6 @@ export default function ProductDetail() {
         </Paper>
 
         <Grid container spacing={4}>
-          {/* Sidebar mục lục */}
           <Grid item xs={12} md={3} sx={{ display: { xs: 'none', md: 'block' } }}>
             <Paper variant="outlined" sx={{ borderRadius: 2, position: 'sticky', top: 80, p: 0, overflow: 'hidden' }}>
               <List disablePadding>
@@ -660,7 +659,6 @@ export default function ProductDetail() {
             </Paper>
           </Grid>
 
-          {/* Nội dung các section */}
           <Grid item xs={12} md={9}>
             <SectionCard title="Mô tả sản phẩm" refEl={(el) => (sectionsRef.current['desc'] = el)} sectionId="desc">
               <Typography variant="body1" sx={{ lineHeight: 1.8, whiteSpace: 'pre-wrap' }}>
@@ -771,7 +769,6 @@ export default function ProductDetail() {
             </SectionCard>
 
             <SectionCard title="Câu hỏi thường gặp" refEl={(el) => (sectionsRef.current['questions'] = el)} sectionId="questions" noDividerAtEnd>
-              {/* Form đặt câu hỏi */}
               <Paper
                 variant="outlined"
                 sx={{
@@ -834,7 +831,6 @@ export default function ProductDetail() {
                 </Box>
               </Paper>
 
-              {/* Danh sách câu hỏi */}
               {Array.isArray(product?.questions) && product.questions.length > 0 ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                   {product.questions.map((q, i) => {
@@ -1009,7 +1005,6 @@ export default function ProductDetail() {
         </Grid>
       </Container>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}
@@ -1030,7 +1025,6 @@ export default function ProductDetail() {
         </Alert>
       </Snackbar>
 
-      {/* Auth dialog: mua/giỏ hàng */}
       <Dialog open={authDialogOpen} onClose={() => setAuthDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 800 }}>Yêu cầu đăng nhập</DialogTitle>
         <DialogContent dividers>
@@ -1051,7 +1045,6 @@ export default function ProductDetail() {
         </DialogActions>
       </Dialog>
 
-      {/* Auth dialog: hỏi đáp */}
       <Dialog open={questionAuthDialogOpen} onClose={() => setQuestionAuthDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 800, color: 'primary.main' }}>Yêu cầu đăng nhập</DialogTitle>
         <DialogContent dividers>

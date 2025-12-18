@@ -1857,7 +1857,6 @@ const AdminProducts = () => {
               <Grid item xs={12} sm={6}>
                 <TextField 
                   select
-                  // label="Danh mục"
                   name="categoryId"
                   value={form.categoryId}
                   onChange={handleChange}

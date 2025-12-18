@@ -94,7 +94,6 @@ export default function CartPage() {
       }
       
       setCartItems(items);
-      // ✅ Khi vừa vào giỏ hàng: KHÔNG tự tick sản phẩm nào
       setSelectedIds({});
     } catch (err) {
       console.error('Error loading cart:', err);
@@ -164,7 +163,6 @@ export default function CartPage() {
         await http.put('/cart/cart-items', { itemCartId: cartIdToUse, quantity: newQuantity });
       }
       //  else {
-      //   // Fallback nếu không có itemCartId (phòng trường hợp API cũ)
       //   await http.put(`/carts/items/${productId}`, { quantity: newQuantity });
       // }
 
@@ -208,10 +206,8 @@ export default function CartPage() {
       setUpdating((prev) => ({ ...prev, [itemToDelete.productId]: true }));
 
       if (itemCardId) {
-        // Gọi API xóa item trong giỏ hàng theo itemCardId
         await http.delete(`/carts/${itemCardId}`);
       } else {
-        // Fallback nếu không có itemCardId (giữ tương thích với API cũ nếu còn)
         await http.delete(`/carts/items/${itemToDelete.productId}`);
       }
 
@@ -262,7 +258,6 @@ export default function CartPage() {
     <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4 }}>
       <Container maxWidth="lg">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          {/* Header */}
           <Box sx={{ mb: 4 }}>
             <Button
               startIcon={<ArrowBackIcon />}
@@ -410,7 +405,6 @@ export default function CartPage() {
             </Paper>
           ) : (
             <Grid container spacing={3}>
-              {/* Cart Items */}
               <Grid item xs={12} md={8}>
                 <Paper
                   elevation={0}
@@ -480,7 +474,6 @@ export default function CartPage() {
                         >
                           <CardContent sx={{ p: 2.5 }}>
                             <Grid container spacing={2} alignItems="center">
-                                {/* Checkbox */}
                                 <Grid item xs={12} sm={1} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'center' } }}>
                                   <Checkbox
                                     checked={isSelected}
@@ -491,7 +484,6 @@ export default function CartPage() {
                                   />
                                 </Grid>
 
-                              {/* Image */}
                                 <Grid item xs={12} sm={2}>
                                 <CardMedia
                                   component="img"
@@ -508,7 +500,6 @@ export default function CartPage() {
                                 />
                               </Grid>
 
-                              {/* Product Info */}
                                 <Grid item xs={12} sm={4}>
                                 <Typography
                                   variant="h6"
@@ -552,7 +543,6 @@ export default function CartPage() {
                                     )}
                                   </Box>
 
-                                  {/* ✅ Thời gian hiệu lực mã giảm giá */}
                                   {item.messageDiscount && (item.discountStart || item.discountEnd) && (
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1 }}>
                                       <AccessTimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
@@ -563,7 +553,6 @@ export default function CartPage() {
                                 )}
                               </Grid>
 
-                              {/* Quantity Control */}
                                 <Grid item xs={12} sm={3}>
                                   <Typography variant="caption" color="text.secondary" sx={{ fontWeight: 700 }}>
                                     Số lượng hiện tại
@@ -638,7 +627,6 @@ export default function CartPage() {
                                   {updating[item.productId] && <CircularProgress size={16} sx={{ mt: 1, ml: 1 }} />}
                               </Grid>
 
-                              {/* Price and Delete */}
                               <Grid item xs={12} sm={2}>
                                 <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
                                     <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main', mb: 1 }}>
@@ -668,7 +656,6 @@ export default function CartPage() {
                 </Paper>
               </Grid>
 
-              {/* Order Summary */}
               <Grid item xs={12} md={4}>
                 <Paper
                   elevation={0}
@@ -778,7 +765,6 @@ export default function CartPage() {
         </motion.div>
       </Container>
 
-      {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onClose={() => setDeleteDialogOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle sx={{ fontWeight: 900 }}>Xác nhận xóa</DialogTitle>
         <DialogContent dividers>
@@ -802,7 +788,6 @@ export default function CartPage() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={4000}

@@ -120,12 +120,10 @@ const AdminUser = () => {
     try {
       setUpdatingStatus((prev) => ({ ...prev, [userId]: true }));
       
-      // Convert string to boolean if needed
       const isActiveValue = newStatus === 'true' ? true : newStatus === 'false' ? false : newStatus;
       
       const response = await http.put(`/users/status?id=${userId}&isActive=${isActiveValue}`);
 
-      // Cập nhật user trong state với dữ liệu từ response
       const updatedUser = response?.data?.data || response?.data;
       if (updatedUser) {
         setUsers((prevUsers) =>
@@ -182,7 +180,6 @@ const AdminUser = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Header */}
         <Box sx={{ mb: 4 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
             <Avatar sx={{ bgcolor: 'primary.main', mr: 2, width: 56, height: 56 }}>
@@ -199,7 +196,6 @@ const AdminUser = () => {
           </Box>
         </Box>
 
-        {/* Statistics Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid item xs={12} sm={6} md={3}>
             <Card sx={{ 
@@ -290,9 +286,7 @@ const AdminUser = () => {
           </Grid>
         </Grid>
 
-        {/* Table Container */}
         <Paper elevation={2} sx={{ borderRadius: 3, overflow: 'hidden' }}>
-          {/* Search and Actions Bar */}
           <Box sx={{ 
             p: 3, 
             borderBottom: '1px solid', 
@@ -337,14 +331,12 @@ const AdminUser = () => {
             </Box>
           </Box>
 
-          {/* Error Alert */}
           {error && (
             <Alert severity="error" sx={{ m: 3 }}>
               {error}
             </Alert>
           )}
 
-          {/* Users Table */}
           <TableContainer>
             <Table>
               <TableHead>
@@ -655,7 +647,6 @@ const AdminUser = () => {
             </Table>
           </TableContainer>
 
-          {/* Loading indicator for refresh */}
           {loading && users.length > 0 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', p: 2 }}>
               <CircularProgress size={24} />

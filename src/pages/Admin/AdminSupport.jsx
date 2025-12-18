@@ -40,14 +40,12 @@ export default function AdminSupport() {
   const [currentUser, setCurrentUser] = useState(null);
   const [error, setError] = useState('');
 
-  // Load admin info và user list khi component mount
   useEffect(() => {
     const loadData = async () => {
       try {
         setLoadingAdmin(true);
         setError('');
 
-        // Gọi API để lấy admin info
         const adminResponse = await http.get('/users/admin-info');
         const adminData = adminResponse?.data?.data || adminResponse?.data;
 
@@ -55,7 +53,6 @@ export default function AdminSupport() {
           throw new Error('Không thể lấy thông tin admin. Vui lòng thử lại sau.');
         }
 
-        // Set currentUser (admin) với ID từ API
         const adminUser = {
           id: adminData.id,
           username: adminData.email?.split('@')[0] || 'admin',
@@ -65,7 +62,6 @@ export default function AdminSupport() {
 
         setCurrentUser(adminUser);
 
-        // Load danh sách users đã chat
         try {
           const userList = await getChatPeople();
           setUsers(userList);
@@ -136,7 +132,6 @@ export default function AdminSupport() {
     );
   }, [users, isMobile]);
 
-  // Loading state khi đang load admin info
   if (loadingAdmin) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -152,7 +147,6 @@ export default function AdminSupport() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -168,7 +162,6 @@ export default function AdminSupport() {
     );
   }
 
-  // Kiểm tra đã có admin info
   if (!currentUser?.id) {
     return (
       <Container maxWidth="xl" sx={{ py: 4 }}>
@@ -205,7 +198,6 @@ export default function AdminSupport() {
         </Box>
 
         <Grid container spacing={3}>
-          {/* Conversations List */}
           <Grid item xs={12} md={4}>
             <Paper elevation={2} sx={{ borderRadius: 3, overflow: 'hidden', height: 'calc(100vh - 200px)' }}>
               <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider', bgcolor: 'white' }}>
@@ -283,7 +275,6 @@ export default function AdminSupport() {
             </Paper>
           </Grid>
 
-          {/* Chat Area */}
           <Grid item xs={12} md={8}>
             <Paper elevation={2} sx={{ borderRadius: 3, overflow: 'hidden', height: 'calc(100vh - 200px)', display: 'flex', flexDirection: 'column' }}>
               {selectedUser && selectedUser.id && currentUser ? (

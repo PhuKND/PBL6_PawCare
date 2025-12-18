@@ -41,6 +41,7 @@ export default function ChatWindow({
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const bottomRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const messagesMapRef = useRef(new Map());
 
   const handleIncomingMessage = useCallback((rawMessage) => {
@@ -140,7 +141,20 @@ export default function ChatWindow({
   }, [currentUser?.id, partnerUser?.id]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current && bottomRef.current) {
+      const container = messagesContainerRef.current;
+      const bottom = bottomRef.current;
+      
+      const isNearBottom = 
+        container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      
+      if (isNearBottom) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    }
   }, [messages]);
 
   const handleSend = useCallback(async () => {
@@ -265,12 +279,14 @@ export default function ChatWindow({
       </Box>
 
       <Box
+        ref={messagesContainerRef}
         sx={{
           p: { xs: 2, md: 3 },
           flex: 1,
           overflowY: 'auto',
           bgcolor: 'grey.50',
-          minHeight: 0
+          minHeight: 0,
+          position: 'relative'
         }}
       >
         {loading ? (

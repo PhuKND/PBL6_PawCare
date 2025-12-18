@@ -16,7 +16,6 @@ export default function ChatPage() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const { partner } = useParams();
 
-  // Get current user from localStorage
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
   const currentUsername = currentUser.username;
 

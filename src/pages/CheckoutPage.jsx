@@ -252,7 +252,6 @@ export default function CheckoutPage() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          {/* Header */}
           <Box sx={{ mb: 4 }}>
             <Button
               startIcon={<ArrowBackIcon />}
@@ -304,7 +303,6 @@ export default function CheckoutPage() {
             </Box>
           </Box>
 
-          {/* Stepper */}
           <Paper
             elevation={0}
             sx={{
@@ -331,7 +329,6 @@ export default function CheckoutPage() {
           )}
 
           <Grid container spacing={3}>
-            {/* Left Column - Form */}
             <Grid item xs={12} md={8}>
               {activeStep === 0 && (
                 <Paper
@@ -503,7 +500,6 @@ export default function CheckoutPage() {
                   </Box>
                   <Divider sx={{ mb: 3 }} />
 
-                  {/* Order Items */}
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
                       Sản phẩm ({cartItems.length})
@@ -559,7 +555,6 @@ export default function CheckoutPage() {
 
                   <Divider sx={{ my: 3 }} />
 
-                  {/* Delivery Info */}
                   <Box sx={{ mb: 3 }}>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
                       Thông tin giao hàng
@@ -591,7 +586,6 @@ export default function CheckoutPage() {
                     </Box>
                   </Box>
 
-                  {/* Payment Method */}
                   <Box>
                     <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
                       Phương thức thanh toán
@@ -657,7 +651,6 @@ export default function CheckoutPage() {
                 </Paper>
               )}
 
-              {/* Navigation Buttons */}
               {activeStep < 2 && (
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 3 }}>
                   <Button
@@ -693,7 +686,6 @@ export default function CheckoutPage() {
               )}
             </Grid>
 
-            {/* Right Column - Order Summary */}
             <Grid item xs={12} md={4}>
               <Paper
                 elevation={0}

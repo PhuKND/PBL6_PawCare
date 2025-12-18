@@ -31,7 +31,6 @@ export default function ProductsOverview() {
   const [totalPages, setTotalPages] = useState(0);
   const [totalElements, setTotalElements] = useState(0);
 
-  // Get filters from URL params
   const getFiltersFromParams = useCallback(() => {
     return {
       categoryId: searchParams.get('categoryId') || '',
@@ -47,14 +46,12 @@ export default function ProductsOverview() {
     parseInt(searchParams.get('page') || '0', 10)
   );
 
-  // Update filters when URL params change
   useEffect(() => {
     const newFilters = getFiltersFromParams();
     setFilters(newFilters);
     setCurrentPage(parseInt(searchParams.get('page') || '0', 10));
   }, [searchParams, getFiltersFromParams]);
 
-  // Load products when filters or page change
   useEffect(() => {
     let mounted = true;
     const loadProducts = async () => {
@@ -74,7 +71,6 @@ export default function ProductsOverview() {
 
         if (mounted) {
           let productList = [];
-          // Handle response structure: { code, message, data: [...], timestamp }
           if (Array.isArray(response?.data)) {
             productList = response.data;
           } else if (Array.isArray(response)) {
@@ -85,8 +81,6 @@ export default function ProductsOverview() {
 
           setProducts(productList);
 
-          // Calculate pagination
-          // If no pagination info in response, calculate from data length
           const total = response?.totalElements || response?.total || productList.length;
           const pages = response?.totalPages || Math.ceil(total / PAGE_SIZE) || 1;
           setTotalElements(total);
@@ -107,7 +101,6 @@ export default function ProductsOverview() {
     return () => { mounted = false; };
   }, [currentPage, filters]);
 
-  // Update URL when filters change
   const updateURL = useCallback((newFilters, newPage = 0) => {
     const params = new URLSearchParams();
     
@@ -141,7 +134,7 @@ export default function ProductsOverview() {
   }, [filters, updateURL]);
 
   const handlePageChange = useCallback((event, value) => {
-    const newPage = value - 1; // Pagination is 1-based, but API is 0-based
+    const newPage = value - 1;
     setCurrentPage(newPage);
     updateURL(filters, newPage);
     window.scrollTo({ top: 0, behavior: 'smooth' });

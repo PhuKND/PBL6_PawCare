@@ -125,7 +125,6 @@ export default function CategoryPage() {
     return base;
   };
   useEffect(() => {
-    // Nếu không có categoryId (truy cập trực tiếp), dùng dữ liệu demo
     if (!categoryId) {
       setProducts(getDemoProducts(title));
       return;

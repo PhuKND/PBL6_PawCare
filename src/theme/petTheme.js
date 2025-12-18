@@ -3,13 +3,13 @@ import { createTheme } from '@mui/material/styles';
 const petTheme = createTheme({
   palette: {
     primary: {
-      main: '#10B981', // Pet-friendly green
+      main: '#10B981',
       light: '#34D399',
       dark: '#059669',
       contrastText: '#FFFFFF',
     },
     secondary: {
-      main: '#F59E0B', // Warm amber
+      main: '#F59E0B',
       light: '#FBBF24',
       dark: '#D97706',
       contrastText: '#FFFFFF',

@@ -1,4 +1,0 @@
- {/* <Typography variant="body1" sx={{ fontWeight: 900, mb: 1 }}>
-                                    Số lượng: {item.quantity}
-                                    {item.unit ? ` ${item.unit}` : ''}
-                                  </Typography> */}

@@ -29,20 +29,17 @@ export default function ConsultPage() {
 
   const quickPrompts = ['Ngứa da', 'Rụng lông', 'Nấm da', 'Ve/rận', 'Hôi tai'];
 
-  // Load current user info và admin info khi component mount
   useEffect(() => {
     const loadUserData = async () => {
       try {
         setLoading(true);
         setError('');
 
-        // Gọi 2 API song song
         const [userResponse, adminResponse] = await Promise.all([
           http.get('/users/info'),
           http.get('/users/admin-info')
         ]);
 
-        // Parse current user (sender)
         const userData = userResponse?.data?.data || userResponse?.data;
         if (!userData?.id) {
           throw new Error('Không thể lấy thông tin người dùng. Vui lòng đăng nhập lại.');
@@ -55,7 +52,6 @@ export default function ConsultPage() {
           email: userData.email
         };
 
-        // Parse admin info
         const adminData = adminResponse?.data?.data || adminResponse?.data;
         if (!adminData?.id) {
           throw new Error('Không thể lấy thông tin admin. Vui lòng thử lại sau.');
@@ -104,7 +100,6 @@ export default function ConsultPage() {
     </Box>
   ), [isMobile]);
 
-  // Loading state
   if (loading) {
     return (
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -118,7 +113,6 @@ export default function ConsultPage() {
     );
   }
 
-  // Error state
   if (error) {
     return (
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4 }}>
@@ -136,7 +130,6 @@ export default function ConsultPage() {
     );
   }
 
-  // Kiểm tra đã có đủ data
   if (!currentUser?.id || !partnerUser?.id) {
     return (
       <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -150,10 +143,37 @@ export default function ConsultPage() {
   }
 
   return (
-    <Box sx={{ bgcolor: 'grey.50', minHeight: '100vh', py: 4 }}>
-      <Container maxWidth="md">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <Paper elevation={2} sx={{ borderRadius: 3, overflow: 'hidden', height: isMobile ? '80vh' : '85vh', display: 'flex', flexDirection: 'column' }}>
+    <Box 
+      sx={{ 
+        bgcolor: 'grey.50', 
+        height: { 
+          xs: 'calc(100vh - 180px)',
+          md: 'calc(100vh - 200px)'
+        },
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        py: { xs: 2, md: 3 }
+      }}
+    >
+      <Container maxWidth="md" sx={{ height: '100%', display: 'flex', alignItems: 'center' }}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.5 }}
+          style={{ width: '100%', height: '100%' }}
+        >
+          <Paper 
+            elevation={2} 
+            sx={{ 
+              borderRadius: 3, 
+              overflow: 'hidden', 
+              height: '100%',
+              display: 'flex', 
+              flexDirection: 'column',
+              position: 'relative'
+            }}
+          >
             <ChatWindow
               currentUser={currentUser}
               partnerUser={partnerUser}

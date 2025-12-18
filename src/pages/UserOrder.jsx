@@ -175,10 +175,10 @@ const UserOrder = () => {
   });
   const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'success' });
 
-  const [sortBy, setSortBy] = useState('createdAt'); // 'createdAt' | 'totalAmount' | 'productName'
-  const [sortDirection, setSortDirection] = useState('desc'); // 'desc' | 'asc'
+  const [sortBy, setSortBy] = useState('createdAt');
+  const [sortDirection, setSortDirection] = useState('desc');
   const [filterKeyword, setFilterKeyword] = useState('');
-  const [filterPaymentMethod, setFilterPaymentMethod] = useState('ALL'); // ALL | COD | VNPAY
+  const [filterPaymentMethod, setFilterPaymentMethod] = useState('ALL');
 
   const currentStatus = statusTabs[activeTab]?.value || 'PENDING';
 
@@ -209,7 +209,6 @@ const UserOrder = () => {
     loadOrders(currentStatus);
   }, [currentStatus, loadOrders]);
 
-  // Cleanup image preview URL
   useEffect(() => {
     return () => {
       if (reviewForm.imagePreview) {
@@ -317,7 +316,6 @@ const UserOrder = () => {
           severity: 'success'
         });
         handleCloseReviewDialog();
-        // Reload orders để cập nhật
         await loadOrders(currentStatus);
       }
     } catch (err) {
@@ -335,7 +333,6 @@ const UserOrder = () => {
   const displayedOrders = useMemo(() => {
     let result = [...orders];
 
-    // Filter by product name keyword
     const keyword = filterKeyword.trim().toLowerCase();
     if (keyword) {
       result = result.filter((order) =>
@@ -345,12 +342,11 @@ const UserOrder = () => {
       );
     }
 
-    // Filter by payment method
     if (filterPaymentMethod !== 'ALL') {
       const target = filterPaymentMethod.toUpperCase();
       result = result.filter((order) => {
         const raw = (order.orderPayment?.paymentMethod || '').toUpperCase();
-        const normalized = raw.replace(/[\s_]/g, ''); // VN_PAY -> VNPAY
+        const normalized = raw.replace(/[\s_]/g, '');
         if (target === 'VNPAY') {
           return normalized.includes('VNPAY');
         }
@@ -358,7 +354,6 @@ const UserOrder = () => {
       });
     }
 
-    // Sort
     const dir = sortDirection === 'asc' ? 1 : -1;
     const getProductNameKey = (order) => {
       const names = (order.orderItems || [])
@@ -496,7 +491,6 @@ const UserOrder = () => {
           </Tabs>
         </Paper>
 
-        {/* Bộ lọc & sắp xếp */}
         <Paper
           elevation={0}
           sx={{
@@ -935,7 +929,6 @@ const UserOrder = () => {
           </Stack>
         )}
 
-        {/* Review Dialog */}
         <Dialog
           open={reviewDialogOpen}
           onClose={handleCloseReviewDialog}
@@ -1112,7 +1105,6 @@ const UserOrder = () => {
           </DialogActions>
         </Dialog>
 
-        {/* Snackbar */}
         <Snackbar
           open={snackbar.open}
           autoHideDuration={6000}
