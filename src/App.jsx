@@ -16,9 +16,6 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import Profile from './pages/Profile';
 import UserOrder from './pages/UserOrder';
-import AiHub from './pages/AiHub';
-import AiSkinCheck from './pages/AiSkinCheck';
-import AiPetIdentify from './pages/AiPetIdentify';
 import './App.css';
 
 function App() {
@@ -59,9 +56,6 @@ function App() {
             <Route path="register" element={<Register />} />
             <Route path="products" element={<ProductsOverview />} />
             <Route path="search" element={<SearchResults />} />
-            <Route path="ai" element={<AiHub />} />
-            <Route path="ai/skin-check" element={<AiSkinCheck />} />
-            <Route path="ai/pet-identify" element={<AiPetIdentify />} />
 
             <Route
               path="cart"

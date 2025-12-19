@@ -41,6 +41,15 @@ const AiHub = () => {
       color: '#F59E0B',
       route: '/ai/pet-identify',
     },
+    {
+      id: 'insect-identify',
+      title: 'Nhận diện côn trùng gây hại',
+      subtitle: 'Phát hiện côn trùng gây hại cho thú cưng',
+      description: 'Tải ảnh hoặc chụp ảnh côn trùng để AI nhận diện và gợi ý các sản phẩm xử lý, bảo vệ thú cưng hiệu quả.',
+      icon: <PsychologyIcon sx={{ fontSize: 64 }} />,
+      color: '#EF4444',
+      route: '/ai/insect-identify',
+    }
   ];
 
   return (

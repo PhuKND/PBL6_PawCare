@@ -17,57 +17,17 @@ import {
   CloudUpload as UploadIcon,
   Image as ImageIcon
 } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
+import { predictInsectType } from '../api/ai';
 
-const API_BASE = 'http://127.0.0.1:5000';
-
-const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
-
-const checkApiHealth = async () => {
-  try {
-    const response = await fetch(`${API_BASE}/api/health`, {
-      headers: { Accept: 'application/json' }
-    });
-    const data = await response.json();
-    return data.status === 'healthy' && data.model_loaded;
-  } catch (error) {
-    console.error('API health check failed:', error);
-    return false;
-  }
-};
-
-const ensureApiHealthy = async (retries = 2, baseDelay = 300) => {
-  for (let i = 0; i <= retries; i++) {
-    const ok = await checkApiHealth();
-    if (ok) return true;
-    await sleep(baseDelay * (i + 1));
-  }
-  return false;
-};
-
-const normalizeApiResult = (data) => {
-  const vi = data?.prediction_vi;
-  const en = data?.prediction_en || data?.prediction;
-  const confNum = typeof data?.confidence === 'number' ? data.confidence : Number(data?.confidence);
-  const classIndex = data?.class_index ?? data?.classIndex;
-
-  return {
-    prediction: vi || data?.prediction || en || null,
-    prediction_vi: vi ?? null,
-    prediction_en: en ?? null,
-    class_index: typeof classIndex === 'number' ? classIndex : null,
-    confidence: Number.isFinite(confNum) ? confNum : null,
-  };
-};
-
-const formatConfidence = (v) => (Number.isFinite(Number(v)) ? Number(v).toFixed(1) : '-');
-
-const ImageUpload = ({ open, onClose, onImageProcessed }) => {
+const ImageUpload = ({ open, onClose }) => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [preview, setPreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [result, setResult] = useState(null);
   const fileInputRef = React.useRef(null);
+  const navigate = useNavigate();
 
   const resetFileInput = () => {
     if (fileInputRef.current) {
@@ -116,30 +76,6 @@ const ImageUpload = ({ open, onClose, onImageProcessed }) => {
     event.preventDefault();
   };
 
-  const sendClassify = async (file) => {
-    const formData = new FormData();
-    formData.append('image', file);
-
-    const response = await fetch(`${API_BASE}/api/classify-image`, {
-      method: 'POST',
-      body: formData,
-    });
-
-    let data;
-    try {
-      data = await response.json();
-    } catch (jsonError) {
-      console.error('JSON parse error:', jsonError);
-      throw new Error('API không trả JSON hợp lệ. Vui lòng kiểm tra kết nối server.');
-    }
-
-    if (!response.ok) {
-      throw new Error(data?.error || `Lỗi server: ${response.status}`);
-    }
-
-    return data;
-  };
-
   const processImage = async () => {
     const file = selectedFile;
     if (!file) return;
@@ -149,27 +85,16 @@ const ImageUpload = ({ open, onClose, onImageProcessed }) => {
     setResult(null);
 
     try {
-      await ensureApiHealthy(2, 300);
-
-      let data;
-      try {
-        data = await sendClassify(file);
-      } catch (err1) {
-        await sleep(500);
-        data = await sendClassify(file);
-      }
-
-      const normalized = normalizeApiResult(data);
-
-      if (!normalized.prediction) {
+      const data = await predictInsectType({ file });
+      if (!data.label) {
         throw new Error('Dữ liệu trả về không hợp lệ');
       }
-
-      setResult(normalized);
-      if (onImageProcessed) onImageProcessed(normalized);
+      setResult(data);
+      if (data.label) {
+        navigate(`/search?keyword=${encodeURIComponent(data.label)}`);
+      }
     } catch (err) {
-      console.error('Process image error:', err);
-      setError('Lỗi khi xử lý ảnh: ' + err.message);
+      setError('Lỗi khi xử lý ảnh: ' + (err.message || 'Không xác định'));
     } finally {
       setIsLoading(false);
     }
@@ -209,16 +134,13 @@ const ImageUpload = ({ open, onClose, onImageProcessed }) => {
         {result && !error && (
           <Alert severity="success" sx={{ mb: 2 }}>
             <Typography variant="body1" component="div">
-              <strong>Thiết bị y tế được nhận diện:</strong> {result.prediction}
+              <strong>Côn trùng được nhận diện:</strong> {result.label}
             </Typography>
-            {result.prediction_en && (
+            {typeof result.confidence === 'number' && (
               <Typography variant="body2" color="text.secondary">
-                (Tiếng Anh: {result.prediction_en})
+                Độ tin cậy: <strong>{result.confidence.toFixed(1)}%</strong>
               </Typography>
             )}
-            {/* <Typography variant="body2" color="text.secondary">
-              Độ tin cậy: <strong>{formatConfidence(result.confidence)}%</strong>
-            </Typography> */}
           </Alert>
         )}
 
@@ -315,3 +237,4 @@ const ImageUpload = ({ open, onClose, onImageProcessed }) => {
 };
 
 export default ImageUpload;
+

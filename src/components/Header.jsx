@@ -41,6 +41,8 @@ import {
   Assessment as AssessmentIcon,
   Pets as PetsIcon,
   Psychology as PsychologyIcon,
+  CloudUpload as CloudUploadIcon,
+  CameraAlt as CameraAltIcon,
 } from '@mui/icons-material';
 
 import { useNavigate } from 'react-router-dom';
@@ -49,6 +51,8 @@ import { Chip } from '@mui/material';
 
 import { clearAuthTokens, apiLogout, getUserRole } from '../api/auth';
 import http from '../api/http';
+import { predictInsectType2Model } from '../api/ai';
+import CameraModal from './CameraModal';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -102,6 +106,9 @@ const Header = ({ onSearch }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [authDialogOpen, setAuthDialogOpen] = useState(false);
   const [categories, setCategories] = useState([]);
+  const [cameraModalOpen, setCameraModalOpen] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const fileInputRef = React.useRef(null);
 
   useEffect(() => {
     const checkAuthStatus = () => {
@@ -205,6 +212,52 @@ const Header = ({ onSearch }) => {
     navigate(`/search?keyword=${encodeURIComponent(keyword)}&page=0&size=10`);
   };
 
+  const handleImageUpload = async (file) => {
+    if (!file) return;
+
+    setIsProcessingImage(true);
+    try {
+      const aiResult = await predictInsectType2Model({ file });
+      const imagePreviewUrl = URL.createObjectURL(file);
+      navigate('/search', { 
+        state: { 
+          aiResult, 
+          imagePreviewUrl,
+          isAiMode: true 
+        } 
+      });
+    } catch (error) {
+      console.error('Error processing image:', error);
+      alert('Lỗi khi xử lý ảnh: ' + (error.message || 'Không xác định'));
+    } finally {
+      setIsProcessingImage(false);
+    }
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Vui lòng chọn file ảnh hợp lệ');
+      return;
+    }
+
+    handleImageUpload(file);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleCameraCapture = async (file) => {
+    if (!file) return;
+    await handleImageUpload(file);
+  };
+
   const toggleMenu = () => setIsMenuOpen((s) => !s);
 
   const handleUserMenuClick = (event) => setAnchorEl(event.currentTarget);
@@ -247,9 +300,6 @@ const Header = ({ onSearch }) => {
         break;
       case 'vaccination-schedule':
         navigate('/vaccination-schedule');
-        break;
-      case 'ai-hub':
-        navigate('/ai');
         break;
       case 'logout':
         handleLogout();
@@ -351,33 +401,49 @@ const Header = ({ onSearch }) => {
                       transform: 'translateY(-50%)',
                       display: 'flex',
                       gap: 1,
+                      alignItems: 'center',
                     }}
                   >
+                    <IconButton
+                      onClick={handleUploadClick}
+                      disabled={isProcessingImage}
+                      sx={{ 
+                        color: 'text.secondary',
+                        '&:hover': { color: 'primary.main' },
+                        p: 0.5
+                      }}
+                      title="Tải ảnh để nhận diện côn trùng"
+                    >
+                      <CloudUploadIcon />
+                    </IconButton>
+                    <IconButton
+                      onClick={() => setCameraModalOpen(true)}
+                      disabled={isProcessingImage}
+                      sx={{ 
+                        color: 'text.secondary',
+                        '&:hover': { color: 'primary.main' },
+                        p: 0.5
+                      }}
+                      title="Chụp ảnh để nhận diện côn trùng"
+                    >
+                      <CameraAltIcon />
+                    </IconButton>
                     <Button type="submit" variant="contained" sx={{ bgcolor: 'primary.main', '&:hover': { bgcolor: 'primary.dark' } }}>
                       Tìm kiếm
                     </Button>
                   </Box>
                 </Search>
               </form>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileSelect}
+                accept="image/*"
+                style={{ display: 'none' }}
+              />
             </Box>
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-              <motion.div whileHover={{ scale: 1.05 }}>
-                <Chip
-                  icon={<PsychologyIcon />}
-                  label="AI Hub"
-                  onClick={() => navigate('/ai')}
-                  sx={{
-                    bgcolor: 'secondary.main',
-                    color: 'white',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                    display: { xs: 'none', md: 'flex' },
-                    '&:hover': { bgcolor: 'secondary.dark' },
-                  }}
-                />
-              </motion.div>
-
               {isLoggedIn ? (
                 <motion.div whileHover={{ scale: 1.1 }}>
                   <IconButton
@@ -449,14 +515,10 @@ const Header = ({ onSearch }) => {
                       <LocationOnIcon sx={{ mr: 2, color: 'text.secondary' }} />
                       Địa chỉ nhận hàng
                     </MenuItem> */}
-                    {/* <MenuItem onClick={() => handleMenuItemClick('vaccination-schedule')}>
+                    {/*                     <MenuItem onClick={() => handleMenuItemClick('vaccination-schedule')}>
                       <ScheduleIcon sx={{ mr: 2, color: 'text.secondary' }} />
                       Lịch hẹn tiêm chủng
                     </MenuItem> */}
-                    <MenuItem onClick={() => handleMenuItemClick('ai-hub')}>
-                      <PsychologyIcon sx={{ mr: 2, color: 'text.secondary' }} />
-                      AI Hub
-                    </MenuItem>
                     <Divider />
                     <MenuItem onClick={() => handleMenuItemClick('logout')}>
                       <LogoutIcon sx={{ mr: 2, color: 'error.main' }} />
@@ -511,12 +573,48 @@ const Header = ({ onSearch }) => {
                 <SearchIconWrapper>
                   <SearchIcon />
                 </SearchIconWrapper>
-                  <StyledInputBase
-                    placeholder="Tìm thức ăn, vitamin, sữa tắm..."
-                    inputProps={{ 'aria-label': 'search' }}
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
+                <StyledInputBase
+                  placeholder="Tìm thức ăn, vitamin, sữa tắm..."
+                  inputProps={{ 'aria-label': 'search' }}
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+                <Box
+                  sx={{
+                    position: 'absolute',
+                    right: 8,
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    display: 'flex',
+                    gap: 0.5,
+                    alignItems: 'center',
+                  }}
+                >
+                  <IconButton
+                    onClick={handleUploadClick}
+                    disabled={isProcessingImage}
+                    sx={{ 
+                      color: 'text.secondary',
+                      '&:hover': { color: 'primary.main' },
+                      p: 0.5
+                    }}
+                    size="small"
+                  >
+                    <CloudUploadIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton
+                    onClick={() => setCameraModalOpen(true)}
+                    disabled={isProcessingImage}
+                    sx={{ 
+                      color: 'text.secondary',
+                      '&:hover': { color: 'primary.main' },
+                      p: 0.5
+                    }}
+                    size="small"
+                  >
+                    <CameraAltIcon fontSize="small" />
+                  </IconButton>
+                </Box>
               </Search>
             </form>
           </Box>
@@ -649,15 +747,6 @@ const Header = ({ onSearch }) => {
                   <ListItemText primary="Lịch hẹn tiêm chủng" />
                 </ListItemButton>
 
-                <ListItemButton
-                  onClick={() => {
-                    toggleMenu();
-                    handleMenuItemClick('ai-hub');
-                  }}
-                >
-                  <ListItemText primary="AI Hub" />
-                </ListItemButton>
-
                 <Divider sx={{ my: 1 }} />
 
                 <ListItemButton
@@ -700,6 +789,12 @@ const Header = ({ onSearch }) => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <CameraModal 
+        open={cameraModalOpen} 
+        onClose={() => setCameraModalOpen(false)}
+        onCapture={handleCameraCapture}
+      />
     </>
   );
 };

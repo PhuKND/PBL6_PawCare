@@ -8,11 +8,16 @@ import {
   Grid,
   Chip,
   Paper,
-  Divider
+  Divider,
+  Button,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { Search as SearchIcon } from '@mui/icons-material';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { searchProducts } from '../api/http';
+import { insectLabelToVi, insectLabelToSearchKeyword } from '../utils/aiMapping';
+import ProductCard from './products/ProductCard';
 
 const SearchResults = ({ searchQuery, searchResults = [] }) => {
   const location = useLocation();
@@ -21,11 +26,24 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
   const keywordFromUrl = urlParams.get('keyword') || '';
   const pageFromUrl = Number(urlParams.get('page') || 0);
   const sizeFromUrl = Number(urlParams.get('size') || 10);
+  
+  const aiResult = location.state?.aiResult;
+  const imagePreviewUrl = location.state?.imagePreviewUrl;
+  const isAiMode = location.state?.isAiMode || false;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [page, setPage] = useState(pageFromUrl);
   const [size] = useState(sizeFromUrl);
   const [remoteResults, setRemoteResults] = useState([]);
+  
+  const [resnetProducts, setResnetProducts] = useState([]);
+  const [effnetProducts, setEffnetProducts] = useState([]);
+  const [resnetLoading, setResnetLoading] = useState(false);
+  const [effnetLoading, setEffnetLoading] = useState(false);
+  const [resnetError, setResnetError] = useState('');
+  const [effnetError, setEffnetError] = useState('');
+
   const getSearchQueryString = (query) => {
     if (typeof query === 'string') {
       return query.trim();
@@ -37,14 +55,57 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
   };
 
   const searchQueryString = getSearchQueryString(keywordFromUrl || searchQuery);
-
-  const canSearch = useMemo(() => Boolean(searchQueryString), [searchQueryString]);
+  const canSearch = useMemo(() => Boolean(searchQueryString) || isAiMode, [searchQueryString, isAiMode]);
 
   useEffect(() => {
-    if (!canSearch) {
+    if (isAiMode && aiResult) {
+      const resnetLabel = aiResult.resnet18?.label || '';
+      const effnetLabel = aiResult.efficientnetb3?.label || '';
+      const resnetKeyword = insectLabelToSearchKeyword(resnetLabel);
+      const effnetKeyword = insectLabelToSearchKeyword(effnetLabel);
+
+      setResnetLoading(true);
+      setEffnetLoading(true);
+      setResnetError('');
+      setEffnetError('');
+
+      const fetchProducts = async () => {
+        if (resnetKeyword) {
+          try {
+            const { list: resnetList } = await searchProducts({ keyword: resnetKeyword, page: 0, size: 20 });
+            setResnetProducts(resnetList || []);
+          } catch (e) {
+            setResnetError(e?.response?.data?.message || 'Không thể tải sản phẩm cho ResNet18');
+          } finally {
+            setResnetLoading(false);
+          }
+        } else {
+          setResnetLoading(false);
+        }
+
+        if (effnetKeyword) {
+          try {
+            const { list: effnetList } = await searchProducts({ keyword: effnetKeyword, page: 0, size: 20 });
+            setEffnetProducts(effnetList || []);
+          } catch (e) {
+            setEffnetError(e?.response?.data?.message || 'Không thể tải sản phẩm cho EfficientNetB3');
+          } finally {
+            setEffnetLoading(false);
+          }
+        } else {
+          setEffnetLoading(false);
+        }
+      };
+
+      fetchProducts();
+      return;
+    }
+
+    if (!canSearch || isAiMode) {
       setRemoteResults([]);
       return;
     }
+
     let isActive = true;
     setLoading(true);
     setError('');
@@ -66,11 +127,10 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
     return () => {
       isActive = false;
     };
-  }, [canSearch, searchQueryString, page, size]);
-
+  }, [canSearch, searchQueryString, page, size, isAiMode, aiResult]);
 
   useEffect(() => {
-    if (!searchQueryString) return;
+    if (!searchQueryString || isAiMode) return;
     const params = new URLSearchParams(location.search || '');
     params.set('keyword', searchQueryString);
     params.set('page', String(page));
@@ -79,126 +139,138 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
     if (next !== `${location.pathname}${location.search}`) {
       navigate(next, { replace: true });
     }
+  }, [page, size, searchQueryString, isAiMode]);
 
-  }, [page, size, searchQueryString]);
-  
+  if (isAiMode && aiResult) {
+    const resnetLabelVi = insectLabelToVi(aiResult.resnet18?.label);
+    const effnetLabelVi = insectLabelToVi(aiResult.efficientnetb3?.label);
+    const resnetConfidence = aiResult.resnet18?.confidence || 0;
+    const effnetConfidence = aiResult.efficientnetb3?.confidence || 0;
+
+    return (
+      <Box sx={{ py: 4, bgcolor: 'grey.50', minHeight: '60vh' }}>
+        <Container maxWidth="lg">
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <SearchIcon color="primary" />
+              <Typography variant="h4" component="h1">
+                Kết quả nhận diện côn trùng
+              </Typography>
+            </Box>
+            {imagePreviewUrl && (
+              <Box sx={{ mb: 3, textAlign: 'center' }}>
+                <img
+                  src={imagePreviewUrl}
+                  alt="Ảnh đã tải lên"
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '400px',
+                    borderRadius: '8px',
+                    border: '2px solid #e0e0e0'
+                  }}
+                />
+              </Box>
+            )}
+            <Divider sx={{ my: 2 }} />
+          </Paper>
+
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+                  ResNet18
+                </Typography>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" color="primary.main" gutterBottom>
+                    {resnetLabelVi}
+                  </Typography>
+                  <Chip
+                    label={`Độ tin cậy: ${resnetConfidence.toFixed(2)}%`}
+                    color="primary"
+                    variant="outlined"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+                  Sản phẩm đề xuất
+                </Typography>
+                {resnetLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : resnetError ? (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {resnetError}
+                  </Alert>
+                ) : resnetProducts.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                    Không tìm thấy sản phẩm nào
+                  </Typography>
+                ) : (
+                  <Grid container spacing={2}>
+                    {resnetProducts.map((product) => (
+                      <Grid item xs={12} sm={6} key={product.id}>
+                        <ProductCard product={product} />
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Paper sx={{ p: 3, height: '100%', display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="h5" component="h2" gutterBottom sx={{ fontWeight: 'bold', mb: 2 }}>
+                  EfficientNetB3
+                </Typography>
+                <Box sx={{ mb: 3 }}>
+                  <Typography variant="h6" color="primary.main" gutterBottom>
+                    {effnetLabelVi}
+                  </Typography>
+                  <Chip
+                    label={`Độ tin cậy: ${effnetConfidence.toFixed(2)}%`}
+                    color="secondary"
+                    variant="outlined"
+                    sx={{ mt: 1 }}
+                  />
+                </Box>
+                <Divider sx={{ my: 2 }} />
+                <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+                  Sản phẩm đề xuất
+                </Typography>
+                {effnetLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : effnetError ? (
+                  <Alert severity="error" sx={{ mb: 2 }}>
+                    {effnetError}
+                  </Alert>
+                ) : effnetProducts.length === 0 ? (
+                  <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
+                    Không tìm thấy sản phẩm nào
+                  </Typography>
+                ) : (
+                  <Grid container spacing={2}>
+                    {effnetProducts.map((product) => (
+                      <Grid item xs={12} sm={6} key={product.id}>
+                        <ProductCard product={product} />
+                      </Grid>
+                    ))}
+                  </Grid>
+                )}
+              </Paper>
+            </Grid>
+          </Grid>
+        </Container>
+      </Box>
+    );
+  }
+
   if (!searchQueryString) {
     return null;
   }
-
-  // const getMedicalEquipmentInfo = (equipmentName) => {
-  //   const equipmentMap = {
-  //     'blood pressure monitor': {
-  //       name: 'Máy đo huyết áp',
-  //       category: 'Thiết bị đo lường',
-  //       description: 'Thiết bị đo huyết áp chính xác, dễ sử dụng'
-  //     },
-  //     'cotton balls': {
-  //       name: 'Bông gòn y tế',
-  //       category: 'Vật tư y tế',
-  //       description: 'Bông gòn y tế chất lượng cao, vô trùng'
-  //     },
-  //     'infrared thermometer': {
-  //       name: 'Nhiệt kế hồng ngoại',
-  //       category: 'Thiết bị đo lường',
-  //       description: 'Nhiệt kế hồng ngoại không tiếp xúc, an toàn'
-  //     },
-  //     'medical gloves': {
-  //       name: 'Găng tay y tế',
-  //       category: 'Vật tư y tế',
-  //       description: 'Găng tay y tế cao su, đảm bảo vệ sinh'
-  //     },
-  //     'medical mask': {
-  //       name: 'Khẩu trang y tế',
-  //       category: 'Vật tư y tế',
-  //       description: 'Khẩu trang y tế 3 lớp, bảo vệ hiệu quả'
-  //     },
-  //     'medical tape': {
-  //       name: 'Băng dính y tế',
-  //       category: 'Vật tư y tế',
-  //       description: 'Băng dính y tế không gây kích ứng da'
-  //     },
-  //     'medical tweezers': {
-  //       name: 'Kẹp y tế',
-  //       category: 'Dụng cụ y tế',
-  //       description: 'Kẹp y tế inox, bền bỉ và dễ vệ sinh'
-  //     },
-  //     'medicine cup': {
-  //       name: 'Cốc uống thuốc',
-  //       category: 'Dụng cụ y tế',
-  //       description: 'Cốc uống thuốc có vạch chia, dễ đo liều'
-  //     },
-  //     'mercury thermometer': {
-  //       name: 'Nhiệt kế thủy ngân',
-  //       category: 'Thiết bị đo lường',
-  //       description: 'Nhiệt kế thủy ngân truyền thống, chính xác'
-  //     },
-  //     'nebulizer mask': {
-  //       name: 'Mặt nạ xông mũi',
-  //       category: 'Thiết bị điều trị',
-  //       description: 'Mặt nạ xông mũi cho máy xông khí dung'
-  //     },
-  //     'pulse oximeter': {
-  //       name: 'Máy đo nồng độ oxy',
-  //       category: 'Thiết bị đo lường',
-  //       description: 'Máy đo nồng độ oxy trong máu, dễ sử dụng'
-  //     },
-  //     'reflex hammer': {
-  //       name: 'Búa phản xạ',
-  //       category: 'Dụng cụ y tế',
-  //       description: 'Búa phản xạ thần kinh, chuyên nghiệp'
-  //     },
-  //     'stethoscope': {
-  //       name: 'Ống nghe y tế',
-  //       category: 'Dụng cụ y tế',
-  //       description: 'Ống nghe y tế chất lượng cao, âm thanh rõ ràng'
-  //     },
-  //     'surgical scissors': {
-  //       name: 'Kéo phẫu thuật',
-  //       category: 'Dụng cụ y tế',
-  //       description: 'Kéo phẫu thuật inox, sắc bén và chính xác'
-  //     }
-  //   };
-    
-  //   return equipmentMap[equipmentName] || {
-  //     name: searchQuery,
-  //     category: 'Thiết bị y tế',
-  //     description: 'Thiết bị y tế chất lượng cao'
-  //   };
-  // };
-
-  const getMockResults = () => {
-    const equipmentInfo = getMedicalEquipmentInfo(searchQueryString);
-    return [
-      {
-        id: 1,
-        name: `${equipmentInfo.name} - Cao cấp`,
-        price: '299,000 VNĐ',
-        image: '/api/placeholder/300/200',
-        category: equipmentInfo.category,
-        description: equipmentInfo.description + ' - Phiên bản cao cấp',
-        inStock: true
-      },
-      {
-        id: 2,
-        name: `${equipmentInfo.name} - Tiêu chuẩn`,
-        price: '199,000 VNĐ',
-        image: '/api/placeholder/300/200',
-        category: equipmentInfo.category,
-        description: equipmentInfo.description + ' - Phiên bản tiêu chuẩn',
-        inStock: true
-      },
-      {
-        id: 3,
-        name: `${equipmentInfo.name} - Bộ combo`,
-        price: '499,000 VNĐ',
-        image: '/api/placeholder/300/200',
-        category: equipmentInfo.category,
-        description: equipmentInfo.description + ' - Bộ sản phẩm đầy đủ',
-        inStock: false
-      }
-    ];
-  };
 
   const results = remoteResults.map((p) => ({
     id: p.id,
@@ -229,19 +301,6 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
               {error}
             </Typography>
           )}
-          
-          {/* <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-            <Chip 
-              label={`AI đã nhận diện: ${getMedicalEquipmentInfo(searchQueryString).name}`} 
-              color="primary" 
-              variant="outlined"
-            />
-            <Chip 
-              label={getMedicalEquipmentInfo(searchQueryString).category} 
-              color="secondary" 
-              variant="outlined"
-            />
-          </Box> */}
         </Paper>
 
         <Grid container spacing={3}>
@@ -253,11 +312,13 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
                   height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
-                  transition: 'transform 0.2s',
+                  borderRadius: 3,
+                  overflow: 'hidden',
+                  transition: 'all .3s ease',
                   cursor: 'pointer',
                   '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: 4
+                    transform: 'translateY(-6px)',
+                    boxShadow: 10
                   }
                 }}
               >
@@ -289,7 +350,7 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
                   )}
                 </Box>
                 
-                <CardContent sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
+                <CardContent sx={{ p: 2.5, flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant="h6" component="h3" gutterBottom>
                     {product.name}
                   </Typography>
@@ -302,7 +363,7 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
                     {product.description}
                   </Typography>
                   
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                     <Typography variant="h6" color="primary.main" fontWeight="bold">
                       {typeof product.price === 'number' ? product.price.toLocaleString('vi-VN') + ' VNĐ' : product.price}
                     </Typography>
@@ -312,20 +373,32 @@ const SearchResults = ({ searchQuery, searchResults = [] }) => {
                       variant="outlined"
                     />
                   </Box>
+                  
+                  <Button
+                    fullWidth
+                    variant="contained"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/product/${product.id}`);
+                    }}
+                    sx={{ mt: 'auto' }}
+                  >
+                    Chọn mua
+                  </Button>
                 </CardContent>
               </Card>
             </Grid>
           ))}
         </Grid>
 
-        {results.length === 0 && (
+        {results.length === 0 && !loading && (
           <Box sx={{ textAlign: 'center', py: 8 }}>
             <SearchIcon sx={{ fontSize: 64, color: 'text.secondary', mb: 2 }} />
             <Typography variant="h5" color="text.secondary" gutterBottom>
               Không tìm thấy sản phẩm nào
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Hãy thử tìm kiếm với từ khóa khác hoặc sử dụng AI Hub để chẩn đoán và tìm sản phẩm phù hợp
+              Hãy thử tìm kiếm với từ khóa khác
             </Typography>
           </Box>
         )}

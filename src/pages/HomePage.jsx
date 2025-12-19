@@ -1210,15 +1210,15 @@ const HomePage = () => {
         </Container>
       </Box>
 
-      <Box sx={{ py: 6, bgcolor: 'background.paper' }}>
+      {/* <Box sx={{ py: 6, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-          >
-            <Box sx={{ textAlign: 'center', mb: 4 }}>
+          > */}
+            {/* <Box sx={{ textAlign: 'center', mb: 4 }}>
               <PsychologyIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
               <Typography variant="h4" sx={{ fontWeight: 'bold', mb: 2 }}>
                 Công cụ AI thông minh
@@ -1226,9 +1226,9 @@ const HomePage = () => {
               <Typography variant="h6" color="text.secondary" sx={{ maxWidth: 600, mx: 'auto' }}>
                 Sử dụng công nghệ AI để chăm sóc sức khỏe thú cưng một cách thông minh
               </Typography>
-            </Box>
+            </Box> */}
 
-            <Grid container spacing={3}>
+            {/* <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <motion.div
                   whileHover={{ y: -8 }}
@@ -1339,9 +1339,9 @@ const HomePage = () => {
                   </Card>
                 </motion.div>
               </Grid>
-            </Grid>
+            </Grid> */}
 
-            <Box sx={{ textAlign: 'center', mt: 4 }}>
+            {/* <Box sx={{ textAlign: 'center', mt: 4 }}>
               <Button
                 variant="outlined"
                 size="large"
@@ -1350,10 +1350,10 @@ const HomePage = () => {
               >
                 Xem tất cả công cụ AI
               </Button>
-            </Box>
-          </motion.div>
+            </Box> */}
+          {/* </motion.div>
         </Container>
-      </Box>
+      </Box> */}
 
       <Box sx={{ py: 6, bgcolor: 'grey.50' }}>
         <Container maxWidth="lg">
