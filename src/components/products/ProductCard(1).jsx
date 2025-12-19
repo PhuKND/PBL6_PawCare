@@ -31,10 +31,10 @@ export default function ProductCard({ product, loading = false }) {
   }
 
   const finalPrice = getFinalPrice(product);
-  const discountPercent = Number(product?.discountPercent ?? 0);
-  const hasDiscount = discountPercent > 0;
+  const hasDiscount = product?.discountPercent && Number(product.discountPercent) > 0;
+  
 
-return (
+  return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
@@ -65,7 +65,7 @@ return (
           />
           {hasDiscount && (
             <Chip
-              label={`-${discountPercent.toFixed(0)}%`}
+              label={`-${Number(product.discountPercent).toFixed(0)}%`}
               color="error"
               size="small"
               sx={{
