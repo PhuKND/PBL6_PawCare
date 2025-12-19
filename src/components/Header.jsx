@@ -388,7 +388,7 @@ const Header = ({ onSearch }) => {
                     <SearchIcon />
                   </SearchIconWrapper>
                   <StyledInputBase
-                    placeholder="Tìm thức ăn, vitamin, sữa tắm, vòng chống ve..."
+                    placeholder="Tìm thức ăn, vitamin, xịt chống ve..."
                     inputProps={{ 'aria-label': 'search' }}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
